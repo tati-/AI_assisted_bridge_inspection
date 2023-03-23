@@ -27,7 +27,7 @@ import utils
 import blender_utils as bl
 import visualization as vis
 import dataset_utils as dts
-from decorators import forall
+from decorators import forall, timer
 from refine_dataset import discard_unrelevant
 from dataset_overview_and_stats import mist_demo, dataset_overview
 
@@ -67,6 +67,7 @@ def get_args():
     return args
 
 
+@timer
 @forall
 def render_labeled_images(*args, **kwargs):
     """

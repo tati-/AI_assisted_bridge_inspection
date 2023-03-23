@@ -69,33 +69,33 @@ def generate_bridge_models(basefile, params=None, savefolder=None, cl=None, brid
         ############################################################################
         #                LOAD AND INITIALISE MESH                                  #
         ############################################################################
-        obj_path = os.path.join(obj_path, f'bridge{bridge_id}.obj')
-        mtl_path = os.path.join(obj_path, f'bridge{bridge_id}.mtl')
-        blender_path = os.path.join(blender_path, f'bridge{bridge_id}.blend')
+        obj_file = os.path.join(obj_path, f'bridge{bridge_id}.obj')
+        mtl_file = os.path.join(obj_path, f'bridge{bridge_id}.mtl')
+        blender_file = os.path.join(blender_path, f'bridge{bridge_id}.blend')
 
         bridge_model = Bridge(json_data_path=basefile,
-                obj_path=obj_path,
-                label_path=mtl_path,
+                obj_path=obj_file,
+                label_path=mtl_file,
                 json_param_path=params)
         bridge_model.create_mesh()
         bridge_model.save_mesh()
         # bridge_coords = {b.name: b.global_coords for b in bridge_model.building_blocks}
         del bridge_model
-        bpy.ops.import_scene.obj(filepath=obj_path, axis_forward='Y', axis_up='Z')
+        bpy.ops.import_scene.obj(filepath=obj_file, axis_forward='Y', axis_up='Z')
         obj = bpy.context.selected_objects[0] # returns an array of objects in the scene
 
         ############################################################################
         #                SPLIT TO SEMANTIC OBJECTS                                 #
         ############################################################################
         bl.bridgeObject2componentObjects(obj, classes_dict)
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(blender_path))
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(blender_file))
 
 
 if __name__ == "__main__":
     start = time.time()
     args = get_args()
     generate_bridge_models(**vars(args))
-    print('Total time elapsed: {}'.format(datetime.timedelta(seconds=time.time()-start)))
+    print(f'Total time elapsed: {datetime.timedelta(seconds=time.time()-start))}'
 
     """
     ############################################################################

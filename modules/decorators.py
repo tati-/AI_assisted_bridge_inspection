@@ -2,6 +2,8 @@ import os
 import sys
 import pdb
 import math
+import time
+import datetime
 import functools
 import numpy as np
 
@@ -57,3 +59,16 @@ def optional(func):
         except:
             pass
     return wrapper_optional
+
+
+def timer(func):
+    """Print the runtime of the decorated function"""
+    @functools.wraps(func)
+    def wrapper_timer(*args, **kwargs):
+        start_time = time.perf_counter()    # 1
+        value = func(*args, **kwargs)
+        end_time = time.perf_counter()      # 2
+        run_time = end_time - start_time    # 3
+        print(f'{func.__name__!r} took: {datetime.timedelta(seconds=run_time)} [HH:MM:SS]')
+        return value
+    return wrapper_timer
