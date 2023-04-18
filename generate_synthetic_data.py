@@ -25,8 +25,6 @@ import pandas as pd
 sys.path.append('modules')
 import utils
 import blender_utils as bl
-import visualization as vis
-import dataset_utils as dts
 from decorators import forall, timer
 from refine_dataset import discard_unrelevant
 from dataset_overview_and_stats import mist_demo, dataset_overview
@@ -52,8 +50,10 @@ def restricted_float(x):
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
     arg = parser.add_argument
+    # input should be given by the shell not in the config file, otherwise the
+    # wildcard is not expanded
     arg('-input', help='wildcard for blender files', type=str, nargs='+',  required=True)
     arg('-savefolder', help= 'folder to save generated dataset',required=True, type=str)
     arg('-resx', help='X resolution (width) of output images [default: 640]', type=int, default=640)
@@ -134,16 +134,14 @@ def render_labeled_images(*args, **kwargs):
                     min_coverage=kwargs['struct_cov'])
 
     # monitor the files that are fully rendered
-    with open(os.path.join(os.path.dirname(args[0]), 'rendered.txt'), 'a') as f:
-        f.write(f'#-------------#\n{datetime.datetime.now}\n#-------------#\n')
-        f.write(f'{os.path.basename(args[0])}\n\n')
-
+    with open(os.path.join(kwargs['savefolder'], 'rendered.txt'), 'a') as f:
+        f.write(f'{os.path.basename(args[0])}\n')
 
 if __name__ == "__main__":
     nl='\n';
     args = get_args()
     paths = dict()
-    # dts_id = utils.dataset_id(args.savefolder)
+    # dts_id = f'dataset_{utils.available(args.savefolder)}'
     dts_id = 'dataset_MIRAUAR'
     paths['base'] = utils.create_folders(args.savefolder, dts_id)[0]
     paths['demo'], paths['overview'] = utils.create_folders(paths['base'],
@@ -152,7 +150,7 @@ if __name__ == "__main__":
 
     # write some information regarding the experiment in the info file
     with open(paths['info'], 'a') as f:
-        f.write(f'Input files: {nl} {nl.join(args.input)} \n\n')
+        # f.write(f'Input files: {nl} {nl.join(args.input)} \n\n')
         f.write(f'# images per bridge: {args.frames} \n\n')
         f.write(f'Image resolution: {args.resx} x {args.resy} \n\n')
         f.write(f'at least {args.struct_cov*100}% of bridge should be in the image \n\n')
@@ -179,7 +177,7 @@ if __name__ == "__main__":
     image_paths = utils.files_with_extensions('jpg', 'JPG', 'png',
                     datapath=os.path.join(paths['base'], 'images'))
     mask_paths = utils.files_with_extensions('jpg', 'JPG', 'png',
-                    datapath=os.path.join(paths['base'], 'masks', '**'), recursive=True)
+                    datapath=os.path.join(paths['base'], 'masks'), recursive=True)
     # in case there is no image, delete folder
     if len(image_paths)==0:
         print(f'Not a single acceptable image was produced, dataset {args.d} is removed.\n')

@@ -25,6 +25,7 @@ sys.path.append('modules')
 sys.path.append('classes')
 import utils
 import blender_utils as bl
+from decorators import timer
 from bridge import BridgeModel as Bridge
 
 
@@ -40,6 +41,7 @@ def get_args():
     return args
 
 
+@timer
 def generate_bridge_models(basefile, params=None, savefolder=None, cl=None, bridges=1):
     savefolder = os.path.dirname(basefile) if savefolder is None else savefolder
     assert os.path.splitext(basefile)[1]=='.json', 'No input file of acceptable type was given [.json]'
@@ -92,11 +94,8 @@ def generate_bridge_models(basefile, params=None, savefolder=None, cl=None, brid
 
 
 if __name__ == "__main__":
-    start = time.time()
     args = get_args()
     generate_bridge_models(**vars(args))
-    print(f'Total time elapsed: {datetime.timedelta(seconds=time.time()-start))}'
-
     """
     ############################################################################
                                     END

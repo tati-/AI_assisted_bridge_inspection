@@ -57,12 +57,16 @@ def files_with_extensions(*args, datapath, recursive=False):
         pattern = f'{pattern}{arg}|'
     pattern = pattern[:-1]
     pattern = f'{pattern})$'
-    files = glob.glob(os.path.join(datapath, '*.*'), recursive=recursive)
+    files = glob.glob(os.path.join(datapath, '**'), recursive=recursive)
+    # if recursive:
+    #     files = [str(x) for x in Path(datapath).rglob('*')]
+    # else:
+    #      files = [str(x) for x in Path(datapath).glob('*')]
     files = [f for f in files if re.search(pattern, f)]
     return files
 
 
-def dataset_id(savefolder, prefix='dataset'):
+def available_id(savefolder, prefix='dataset'):
     """
     finds an unused id of the form 'vXXXX' for an experiment. The criterion is
     that no folder '<prefix>_<id>' exists inside savefolder

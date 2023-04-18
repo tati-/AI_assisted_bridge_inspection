@@ -1,7 +1,7 @@
 """
 This scripts refines a set of images (cleans the dataset so that only images
 that contain a significant amount of labels stay)
-# sample usage remote: python dataset_overview_and_stats.py -d ../../data/Bridge_parametric_models/PIPO/dataset_v0001
+# sample usage remote: python dataset_overview_and_stats.py -d ../../data/Bridge_parametric_models/PIPO/dataset_MIRAUAR
 # sample usage local: python dataset_overview_and_stats.py -d ~/mounts/deepmachine/MIRAUAR/data/Bridge_parametric_models/PIPO/dataset_v0001
 """
 import os
@@ -22,7 +22,7 @@ sys.path.append('modules')
 import utils
 import visualization as vis
 import dataset_utils as dts
-from decorators import optional
+from decorators import optional, timer
 
 @optional
 def mist_demo(img_paths, savefolder='.', clear=True):
@@ -46,8 +46,7 @@ def mist_demo(img_paths, savefolder='.', clear=True):
             images_mist.append(cv2.cvtColor(cv2.imread(path),  cv2.COLOR_BGR2RGB))
             images_no_mist.append(cv2.cvtColor(cv2.imread(img_no_mist_path),  cv2.COLOR_BGR2RGB))
     if clear and flag_no_mist:
-        shutil.rmtree(os.path.dirname(images_no_mist[0]))
-
+        shutil.rmtree(re.sub('images$', 'images_without_mist', os.path.dirname(img_paths[0])))
     ############################################################################
     #                               DEMOS                                      #
     ############################################################################
@@ -56,18 +55,15 @@ def mist_demo(img_paths, savefolder='.', clear=True):
                         savefolder=savefolder)
 
 
+@timer
 def dataset_overview(image_paths, mask_paths, savefolder='.'):
     """
     this function gets a number of image and mask paths and saves figures depicting
     the images side by side with their segmentation groundtruth
     """
-    images, masks, labels = dts.data_loder(image_paths=image_paths,
-                                                mask_paths=mask_paths)
-
-    # transform mask array from one hot encoding to ''discrete'' encoding
-    # [[0, 1, 0], [1, 0, 0], [0, 0, 1]] -> [1, 0, 2]
-    masks_discrete = np.argmax(masks, axis=-1)
-    vis.inspect_dataset(images, masks_discrete, labels, savefolder=savefolder)
+    df = dts.organize_sample_paths(image_paths, mask_paths)
+    labels = ['background'] + list(df.keys()[1:])
+    vis.inspect_dataset(*[row for i,row in df.iterrows()], labels=labels, savefolder=savefolder)
 
 
 if __name__ == "__main__":
@@ -77,7 +73,7 @@ if __name__ == "__main__":
     image_paths = utils.files_with_extensions('jpg', 'JPG', 'png',
                     datapath=os.path.join(args.d, 'images'))
     mask_paths = utils.files_with_extensions('jpg', 'JPG', 'png',
-                    datapath=os.path.join(args.d, 'masks', '**'), recursive=True)
+                    datapath=os.path.join(args.d, 'masks'), recursive=True)
     # in case there is no image, delete folder
     if len(image_paths)==0:
         print(f'Not a single acceptable image was produced, dataset {args.d} is removed.\n')

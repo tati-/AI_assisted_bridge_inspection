@@ -1,0 +1,10 @@
+-savefolder
+../../data/Bridge_parametric_models/PIPO/
+-textures
+../../data/textures/bridge_materials/bridge_materials.blend
+-frames
+100
+--img-cov
+0.1
+--struct-cov
+0.1

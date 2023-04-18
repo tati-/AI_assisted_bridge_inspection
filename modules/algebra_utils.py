@@ -31,7 +31,7 @@ def sample_positions(init_location, init_rotation, location_ranges, rotation_ran
     INPUTS:
     @init_location: array length 3, with xyz coordinates
     @init_rotation: array length 3, with rotation around x, y, and z, in degrees
-    @location_ranges: array length 3 range of +- meters around the initial location
+    @location_ranges: array length 3x2 absolute margins on each axis (in meters)
     @rotation_ranges: array length 3 range of +- degrees around the initial rotation
     @n_samples: integer, number of rotation versions to sample
     OUTPUTS:

@@ -15,6 +15,13 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 sns.set(font='DejaVu Serif', font_scale=2)
 sns.set_style('darkgrid', {'font.family':'serif'})
+import dataset_utils as dts
+from decorators import forall
+
+
+# get values of preexisting colormap as list
+class_colors = cm.get_cmap('tab20')((np.linspace(0, 1, 12)))[:, :3]
+class_colors[0, :] = np.asarray([0,0,0])
 
 
 def plot_time_wrt_vertices(time_, n_vertices, save_path='time_wrt_vertices.pdf', time_unit='sec'):
@@ -42,62 +49,63 @@ def plot_time_wrt_vertices(time_, n_vertices, save_path='time_wrt_vertices.pdf',
     plt.close()
 
 
-def inspect_dataset(data, gt_masks, class_desc, imsizes=None, savefolder=None):
+@forall
+def inspect_dataset(paths, labels, savefolder=None):
     """
     this function displays each data sample image with its groundtruth and
     potentially with the network prediction.
     If a savefolder is given as input, those images are saved.
     INPUTS:
-    @data: numpy array of size nImages x nRows x nColumns x nChannels
-    @targets: numpy array of the labels, of size nImages x nRows x nColumns
-                each label is represented by an integer value
-    @predictions: numpy array of the predictions, of size nImages x nRows x nColumns
-    @imsize: is this needed??
-    @save_path: path to folder where overview should be saved
+    @sample_paths: pandas series, sample paths with keys [image, label1, label2, ...]
+                    for a single sample
     @labels: list of strings, labels description. The index of each list element
-            corresponds to the integer value representing the label
+            corresponds to the integer value representing the label. Background
+            label should be included
+    @savefolder: path to folder where overview should be saved
     """
-    # get values of preexisting colormap as list
-    tab20_colors = mpl.cm.get_cmap('tab20')((np.linspace(0, 1, len(class_desc))))[:, :3]
-    tab20_colors[0, :] = np.asarray([0,0,0])
     # create colormap with specific number of bins
-    cmap = LinearSegmentedColormap.from_list('cm', tab20_colors, N=len(class_desc))
-    for i, (im, gt) in enumerate(zip(data, gt_masks)):
-        imsize = gt.shape if imsizes is None else imsizes[i,:]
-        fig = plt.figure(figsize=(3*len(class_desc),8)) #(15,8)
-        gs = GridSpec(nrows=2, ncols=2, height_ratios=[1, 0.1])
-        # ax = np.empty(3, dtype=object)
-        ax_rgb = fig.add_subplot(gs[0, 0])
-        ax_gt = fig.add_subplot(gs[0, 1])
-        ax_cb = fig.add_subplot(gs[1, :])
-        ax_rgb.imshow(im[:imsize[0], :imsize[1], :])
-        ax_rgb.set_title('Original image')
-        ax_rgb.grid(False)
-        ax_rgb.set_xticks([])
-        ax_rgb.set_yticks([])
-        #
-        im_gt = ax_gt.imshow(gt[:imsize[0], :imsize[1]], vmin=0, vmax=len(class_desc)-1, cmap=cmap) #, cmap=cmap
-        ax_gt.set_title('Groundtruth segmentation')
-        ax_gt.grid(False)
-        ax_gt.set_xticks([])
-        ax_gt.set_yticks([])
-        # create an axes on the right side of ax. The width of cax will be 5%
-        # of ax and the padding between cax and ax will be fixed at 0.05 inch.
-        # divider = make_axes_locatable(ax_gt)
-        # cax = divider.append_axes("right", size="5%", pad=0.05)
-        # plt.colorbar(im_gt, cax=cax, ticks=range(len(gt_labels)))
-        # cax.set_yticklabels(gt_labels)  # vertical colorbar
-        ax_cb.grid(False)
-        bin_size = (len(class_desc)-1)/len(class_desc)
-        ticks = [x*bin_size+bin_size/2 for x in range(len(class_desc))]
-        fig.colorbar(im_gt, cax=ax_cb, orientation='horizontal', ticks=ticks)
-        ax_cb.set_xticklabels(class_desc, fontsize='x-small') # horizontal colorbar
-        if savefolder is None:
-            plt.show()
-        else:
-            plt.savefig(os.path.join(savefolder, '{}.png'.format(i)), bbox_inches='tight')
-            plt.savefig(os.path.join(savefolder, '{}.pdf'.format(i)), bbox_inches='tight')
-        plt.close()
+    cmap = LinearSegmentedColormap.from_list('cm', class_colors, N=len(labels))
+    img_path = paths.image
+    mask_paths = {key: [paths[key]] for key in paths.keys()[1:]}
+
+    im, gt, _ = dts.data_loader([img_path], mask_paths, labels=labels)
+    im, gt = im[0], np.argmax(gt[0], axis=-1)
+    im_id = os.path.splitext(os.path.basename(paths.image))[0].replace('image_', '')
+    pdb.set_trace()
+    fig = plt.figure(figsize=(3*len(labels),8)) #(15,8)
+    gs = GridSpec(nrows=2, ncols=2, height_ratios=[1, 0.1])
+    # ax = np.empty(3, dtype=object)
+    ax_rgb = fig.add_subplot(gs[0, 0])
+    ax_gt = fig.add_subplot(gs[0, 1])
+    ax_cb = fig.add_subplot(gs[1, :])
+    ax_rgb.imshow(im)
+    ax_rgb.set_title('Original image')
+    ax_rgb.grid(False)
+    ax_rgb.set_xticks([])
+    ax_rgb.set_yticks([])
+    #
+    im_gt = ax_gt.imshow(gt, vmin=0, vmax=len(labels)-1, cmap=cmap) #, cmap=cmap
+    ax_gt.set_title('Groundtruth segmentation')
+    ax_gt.grid(False)
+    ax_gt.set_xticks([])
+    ax_gt.set_yticks([])
+    # create an axes on the right side of ax. The width of cax will be 5%
+    # of ax and the padding between cax and ax will be fixed at 0.05 inch.
+    # divider = make_axes_locatable(ax_gt)
+    # cax = divider.append_axes("right", size="5%", pad=0.05)
+    # plt.colorbar(im_gt, cax=cax, ticks=range(len(gt_labels)))
+    # cax.set_yticklabels(gt_labels)  # vertical colorbar
+    ax_cb.grid(False)
+    bin_size = (len(labels)-1)/len(labels)
+    ticks = [x*bin_size+bin_size/2 for x in range(len(labels))]
+    fig.colorbar(im_gt, cax=ax_cb, orientation='horizontal', ticks=ticks)
+    ax_cb.set_xticklabels(labels, fontsize='x-small') # horizontal colorbar
+    if savefolder is None:
+        plt.show()
+    else:
+        plt.savefig(os.path.join(savefolder, f'{im_id}.png'), bbox_inches='tight')
+        plt.savefig(os.path.join(savefolder, f'{im_id}.pdf'), bbox_inches='tight')
+    plt.close()
 
 
 def demo_mist(images_mist, images_no_mist, n_images=None, savefolder=None):

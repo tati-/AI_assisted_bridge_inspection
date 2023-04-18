@@ -201,8 +201,8 @@ class Terrain:
         # define faces by sequence of counterclockwise vertices
         # (there are several possible combinations of faces to cover this space,
         # this is just one of them)
-        faces.extend([(0,1,19), (0,19,18), (1,12,19), (23,3,2), (22,23,2), (3,23,24),
-                (13,12,24), (13,24,25), (1,3,24,12), (2,6,22)])
+        faces.extend([(0,1,19), (0,18,10), (0,19,18), (1,12,19), (23,3,2), (22,23,2),
+                    (3,23,24), (13,12,24), (13,24,25), (1,3,24,12), (2,6,22)])
 
         # Create Mesh Datablock
         mesh = bpy.data.meshes.new('ground_east')
@@ -291,8 +291,9 @@ class Terrain:
         # define faces by sequence of counterclockwise vertices
         # (there are several possible combinations of faces to cover this space,
         # this is just one of them)
-        faces.extend([(0,19,18), (0,18,1), (1,18,13), (13,12,24), (24,25,13),
-                (22,23,2), (2,3,22), (3,25,22), (3,1,13,25), (3,23,7)])
+        faces.extend([(0,11,19), (0,19,18), (0,18,1), (1,18,13), (13,12,24), (24,25,13),
+                (22,23,2), (2,3,22), (3,25,22), (3,1,13,25), (2,23,7)])
+        # faces.extend([(3,23,7)])
 
         # Create Mesh Datablock
         mesh = bpy.data.meshes.new('ground_west')

@@ -48,7 +48,6 @@ def fill_terrain(filename):
     # save the updated file
     bpy.ops.wm.save_as_mainfile() # , visible_objects_only=True
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-input', help='wildcard for blender files', type=str, nargs='+',  required=True)

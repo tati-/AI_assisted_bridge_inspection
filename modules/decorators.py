@@ -72,3 +72,20 @@ def timer(func):
         print(f'{func.__name__!r} took: {datetime.timedelta(seconds=run_time)} [HH:MM:SS]')
         return value
     return wrapper_timer
+
+
+def report_time(path):
+    def timer(func):
+        """Print the runtime of the decorated function"""
+        @functools.wraps(func)
+        def wrapper_timer(*args, **kwargs):
+            start_time = time.perf_counter()    # 1
+            value = func(*args, **kwargs)
+            end_time = time.perf_counter()      # 2
+            run_time = end_time - start_time    # 3
+            print(f'{func.__name__!r} took: {datetime.timedelta(seconds=run_time)} [HH:MM:SS]')
+            return value
+        return wrapper_timer
+        with open(path, 'a') as f:
+            f.write(f'{func.__name__!r} took: {datetime.timedelta(seconds=run_time)} [HH:MM:SS] \n\n')
+    return timer

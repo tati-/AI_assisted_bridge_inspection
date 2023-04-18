@@ -1,8 +1,8 @@
 """
 This scripts refines a set of images (cleans the dataset so that only images
 that contain a significant amount of labels stay)
-# sample usage remote: python refine_dataset.py -d ../../data/Bridge_parametric_models/PIPO/dataset_v0001 -cov 0.1
-# sample usage local: python refine_dataset.py -d ~/mounts/deepmachine/MIRAUAR/data/Bridge_parametric_models/PIPO/dataset_v0001 -cov 0.1
+# sample usage remote: python refine_dataset.py -d ../../data/Bridge_parametric_models/PIPO/dataset_MIRAUAR -cov 0.1
+# sample usage local: python refine_dataset.py -d ~/mounts/deepmachine/MIRAUAR/data/Bridge_parametric_models/PIPO/dataset_MIRAUAR -cov 0.1
 """
 import os
 import sys
@@ -23,6 +23,7 @@ sys.path.append('modules')
 import utils
 import visualization as vis
 import dataset_utils as dts
+from decorators import timer
 
 
 def restricted_float(x):
@@ -49,6 +50,7 @@ def get_args():
     return args
 
 
+@timer
 def discard_unrelevant(datapath, coverage=0.1):
     """
     discard all images inside 'images' folder of datapath, that contain less
@@ -56,11 +58,10 @@ def discard_unrelevant(datapath, coverage=0.1):
     Also creates an image as a small demo of the discarded images
     """
     images_discarded = list()
-
     image_paths = utils.files_with_extensions('jpg', 'JPG', 'png',
                     datapath=os.path.join(datapath, 'images'))
     mask_paths = utils.files_with_extensions('jpg', 'JPG', 'png',
-                    datapath=os.path.join(datapath, 'masks', '**'), recursive=True)
+                    datapath=os.path.join(datapath, 'masks'), recursive=True)
     discarded = dts.clean_dataset(image_paths, mask_paths, coverage)
     if len(discarded)>0:
         images_discarded=random.sample(discarded, min(5, len(discarded)))

@@ -16,12 +16,12 @@ Python version [3.10.2](https://www.python.org/downloads/release/python-3102/) w
 
 The code is divided in a number of modules.
 1. ``generate_3d_semantic_models.py`` generates blender geometric models starting from a set of ``.json`` files and a label dictionary. The resulting blender file has one object per building block, and collections to group the components belonging to the same semantic class.
-2. ``fill_terrain.py`` takes as input a set of blender files ([wildcards](https://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm) allowed if on unix) of-for the moment-PIPO bridges, and fills the road and terrain around them.
-3. ``generate_synthetic_data.py`` takes as input a number of blender files (as in ``fill_terrain.py``), adds textures and environmental conditions, and produces a number of images along with their corresponding ground truth.
+2. ``fill_terrain.py`` takes as input a set of blender files ([wildcards](https://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm) allowed if on unix) of-for the moment-PIPO bridges, and fills the road and terrain around them. The wildcard can be of the form `/path/to/blend_files/bridge*.blend` for all bridges, or `/path/to/blend_files/bridge{10..20}.blend` for a specific range.
+3. ``generate_synthetic_data.py`` takes as input a number of blender files (as in ``fill_terrain.py``), adds textures and environmental conditions, and produces a number of images along with their corresponding ground truth. <span style="color:red">*For the moment this script can crush and stop because of a rendering issue in Blender that I cannnot yet control*.</span>
 4. ``refine_dataset.py`` takes as input a dataset folder and a ratio denoting the acceptable amount of positive (not background) class that should be in each image for the image to be considered useful, and cleans up the dataset.
 5. ``dataset_overview_and_stats.py`` takes as input a dataset folder and produces a number of figures showing the image side by side with its corresponding groundtruth, and also produces some more demos and dataset statistics.
 
->**_NOTE:_** The functionalities of points 4. and 5. above are integrated in the script of point 3. However they are also provided seperately, in order to allow for post processing, or for processing in case the script ``generate_synthetic_data.py`` was run only partially. *For the moment this script can crush and stop because of a rendering issue in Blender that I cannnot yet control*.
+>**_NOTE:_** The functionalities of points 4. and 5. above are integrated in the script of point 3. However they are also provided seperately, in order to allow for post processing, or for processing in case the script ``generate_synthetic_data.py`` was run only partially.
 
 <!-- ```sh
 python generate_synthetic_dataset.py -input /path/to/base/xxx.json -params /path/to/parameter/set/zzz.json -textures /path/to/textures/directory -cl /path/to/semantic/classes/file -frames 2 -bridges 2
