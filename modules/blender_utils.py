@@ -41,8 +41,8 @@ def initialize_blender_env(**kwargs):
     scene.render.resolution_x = kwargs['resx']
     scene.render.resolution_y = kwargs['resy']
     scene.render.engine = 'CYCLES'
-    scene.cycles.samples =  1024 # 1024 max samples to use for rendering
-    scene.cycles.texture_limit_render = '1024' # max image size to use for rendering
+    scene.cycles.samples =  2048 # 1024 max samples to use for rendering
+    # scene.cycles.texture_limit_render = '1024' # max image size to use for rendering
     bpy.data.scenes['Scene'].cycles.device = 'GPU'
 
     # Attempt to set GPU device types if available
@@ -195,48 +195,6 @@ def ojb2hexahedronCoords(obj):
 
 
 @iterate(8)
-def simulate_hexahedral_coords_(hex_i, coords):
-    """
-    takes am array of 3d coords, and
-    an index indicating one of the following positions:
-    (for a y-forward, z-up view):
-    0: back top right
-    1: back top left
-    2: back bottom left
-    3: back bottom right
-    4: front top right
-    5: front top left
-    6: front bottom left
-    7: front bottom right
-    and returns the index of the original array that corresponds to that
-    INPUTS:
-    coords: 8x3 array of 3d coords represending a hexahedron
-    hex_i: integer in {0,...,7}
-    OUTPUT:
-    index: integer in {0, ... len(coords)} pointing to the
-            simulated position
-    """
-    cog = np.mean(coords, axis=0) #center of gravity
-    if hex_i in [0,3,4,7]: # right-east
-        coords = coords[coords[:,0]<=cog[0]]
-    else: # left-west
-        coords = coords[coords[:,0]>=cog[0]]
-    cog = np.mean(coords, axis=0)
-    if hex_i in np.arange(4): # back-north
-        coords = coords[coords[:,1]<=cog[1]]
-    else: # front-south
-        coords = coords[coords[:,1]>=cog[1]]
-    cog = np.mean(coords, axis=0)
-    if hex_i in [2,3,6,7]: # top
-        coords = coords[coords[:,2]<=cog[2]]
-    else: # bottom
-        coords = coords[coords[:,2]>=cog[2]]
-    # if more than one coordinates correspond, arbitrary choice
-    # could be a max or min on some dimension at some point
-    return coords[0, ...]
-
-
-@iterate(8)
 def simulate_hexahedral_coords(hex_i, coords):
     """
     takes am array of 3d coords, and
@@ -262,7 +220,7 @@ def simulate_hexahedral_coords(hex_i, coords):
         caused by extreme cases of objects' orientations
     """
     limits = np.max(coords, axis=0) - np.min(coords, axis=0)
-    cog = np.mean(coords, axis=0) #center of gravity
+    cog = np.median(coords, axis=0) #center of gravity
     axis_order = np.argsort(limits) # indices that sort limits in ascending order
     for axis in axis_order[::-1]:
         if axis==0:
@@ -280,7 +238,7 @@ def simulate_hexahedral_coords(hex_i, coords):
                 coords = coords[coords[:,2]<=cog[2]]
             else: # bottom
                 coords = coords[coords[:,2]>=cog[2]]
-        cog = np.mean(coords, axis=0)
+        cog = np.median(coords, axis=0)
     # if more than one coordinates correspond, arbitrary choice
     # could be a max or min on some dimension at some point
     return coords[0, ...]

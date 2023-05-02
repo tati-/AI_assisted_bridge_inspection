@@ -56,7 +56,7 @@ def inspect_dataset(paths, labels, savefolder=None):
     potentially with the network prediction.
     If a savefolder is given as input, those images are saved.
     INPUTS:
-    @sample_paths: pandas series, sample paths with keys [image, label1, label2, ...]
+    @paths: pandas series, sample paths with keys [image, label1, label2, ...]
                     for a single sample
     @labels: list of strings, labels description. The index of each list element
             corresponds to the integer value representing the label. Background
@@ -71,7 +71,8 @@ def inspect_dataset(paths, labels, savefolder=None):
     im, gt, _ = dts.data_loader([img_path], mask_paths, labels=labels)
     im, gt = im[0], np.argmax(gt[0], axis=-1)
     im_id = os.path.splitext(os.path.basename(paths.image))[0].replace('image_', '')
-    pdb.set_trace()
+    if im_id=='':
+        pdb.set_trace()
     fig = plt.figure(figsize=(3*len(labels),8)) #(15,8)
     gs = GridSpec(nrows=2, ncols=2, height_ratios=[1, 0.1])
     # ax = np.empty(3, dtype=object)

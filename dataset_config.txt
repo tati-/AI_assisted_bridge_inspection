@@ -3,7 +3,7 @@
 -textures
 ../../data/textures/bridge_materials/bridge_materials.blend
 -frames
-100
+20
 --img-cov
 0.1
 --struct-cov

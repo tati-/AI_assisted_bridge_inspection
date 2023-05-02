@@ -40,6 +40,8 @@ class Terrain:
         self.road_poi = self.add_road()
         self.poi_pairs = self.get_POI_pairs()
         self.add_ground()
+        # extend road along x axis to avoid some connecting point artifacts
+        self.road.scale[0] = 1.3
         bl.subdivide_meshes(*self.ground.values(), n_cuts=subdivisions)
 
 
@@ -96,6 +98,7 @@ class Terrain:
         bm.clear()
         # put object in the collection corresponding to its class
         try:
+            # remove road from any other collection in which it might be assigned
             [x.objects.unlink(self.road) for x in self.road.users_collection]
             bpy.data.collections['terrain'].objects.link(self.road)
         except:
@@ -293,7 +296,7 @@ class Terrain:
         # this is just one of them)
         faces.extend([(0,11,19), (0,19,18), (0,18,1), (1,18,13), (13,12,24), (24,25,13),
                 (22,23,2), (2,3,22), (3,25,22), (3,1,13,25), (2,23,7)])
-        # faces.extend([(3,23,7)])
+        # faces.extend([(2,3,22)])
 
         # Create Mesh Datablock
         mesh = bpy.data.meshes.new('ground_west')

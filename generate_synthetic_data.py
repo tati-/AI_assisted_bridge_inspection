@@ -22,6 +22,7 @@ import datetime
 import unidecode
 import numpy as np
 import pandas as pd
+from natsort import natsorted
 sys.path.append('modules')
 import utils
 import blender_utils as bl
@@ -142,7 +143,7 @@ if __name__ == "__main__":
     args = get_args()
     paths = dict()
     # dts_id = f'dataset_{utils.available(args.savefolder)}'
-    dts_id = 'dataset_MIRAUAR'
+    dts_id = 'dataset_MIRAUAR_small'
     paths['base'] = utils.create_folders(args.savefolder, dts_id)[0]
     paths['demo'], paths['overview'] = utils.create_folders(paths['base'],
                                                         'demo', 'overview')
@@ -159,7 +160,8 @@ if __name__ == "__main__":
     # input files are passed as args, rest values are passed as kwargs
     kwargs = {key: val for key, val in vars(args).items() if key!='input'}
     kwargs['savefolder'] = paths['base']
-    render_labeled_images(*args.input, **kwargs)
+    input_files = natsorted(args.input)
+    render_labeled_images(*input_files, **kwargs)
 
     # save info on what device was used for render
     with open(paths['info'], 'a') as f:
