@@ -407,7 +407,7 @@ class BridgeModel:
 
     def get_rotation_angles(self, index):
         """
-        This function returns the rotation angle in degrees, taking into
+        This function returns the rotation angle in degrees (counterclockwise), taking into
         account the constraints
         rot_axis: string, indication of the rotation axis
         If the obj is loaded with Y forward, Z up, this corresponds to:

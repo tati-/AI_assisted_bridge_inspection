@@ -18,6 +18,7 @@ import argparse
 import warnings
 import datetime
 import numpy as np
+import pandas as pd
 sys.path.append('modules')
 import utils
 import visualization as vis
@@ -63,7 +64,17 @@ def dataset_overview(image_paths, mask_paths, savefolder='.'):
     """
     df = dts.organize_sample_paths(image_paths, mask_paths)
     labels = ['background'] + list(df.keys()[1:])
-    vis.inspect_dataset(*[row for i,row in df.iterrows()], labels=labels, savefolder=savefolder)
+
+    class_concentration = vis.inspect_dataset(*[row for i,row in df.iterrows()], labels=labels, savefolder=savefolder)
+    class_concentration = pd.DataFrame.from_records(class_concentration)
+    class_totals = class_concentration.sum(axis='index')
+    class_totals.name = 'n_pixels'
+    class_freq = class_totals.divide(class_totals.sum())
+    class_freq.name = 'freq'
+    class_stats = pd.concat([class_totals, class_freq], axis=1)
+    # save number of pixels per class in csv
+    csv_path = os.path.join(savefolder, 'class_concentration.csv')
+    class_stats.to_csv(csv_path)
 
 
 if __name__ == "__main__":

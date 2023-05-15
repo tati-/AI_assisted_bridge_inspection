@@ -30,7 +30,7 @@ from bridge import BridgeModel as Bridge
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
     arg = parser.add_argument
     arg('-basefile', help='input file path [acceptable formats: .json]', type=str, required=True)
     arg('-params', help='json file path with parameters', type=str)

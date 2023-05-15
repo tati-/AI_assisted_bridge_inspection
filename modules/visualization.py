@@ -69,6 +69,10 @@ def inspect_dataset(paths, labels, savefolder=None):
     mask_paths = {key: [paths[key]] for key in paths.keys()[1:]}
 
     im, gt, _ = dts.data_loader([img_path], mask_paths, labels=labels)
+    # get number of pixel labels per class
+    class_concentr = np.sum(gt, axis=tuple(range(gt.ndim-1)))
+    class_concentr = {label: int(class_concentr[i]) for i,label in enumerate(labels)}
+    #
     im, gt = im[0], np.argmax(gt[0], axis=-1)
     im_id = os.path.splitext(os.path.basename(paths.image))[0].replace('image_', '')
     if im_id=='':
@@ -107,6 +111,8 @@ def inspect_dataset(paths, labels, savefolder=None):
         plt.savefig(os.path.join(savefolder, f'{im_id}.png'), bbox_inches='tight')
         plt.savefig(os.path.join(savefolder, f'{im_id}.pdf'), bbox_inches='tight')
     plt.close()
+
+    return class_concentr
 
 
 def demo_mist(images_mist, images_no_mist, n_images=None, savefolder=None):
