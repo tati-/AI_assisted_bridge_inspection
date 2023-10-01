@@ -12,6 +12,6 @@ Portal frame bridges are concrete monolithic structures, in the sense that their
 
 This work is organised in the following tasks:
 
-- [Generation of a synthetic dataset of portal frame bridges from a geometric model.](src/bridge_synthetic/README.md)
+- [Generation of a synthetic dataset of portal frame bridges from a geometric model.](src/bridge_synthetic)
 
 <!-- - [Semantic classification of bridge structural components.](bridge_semantic_segmentation.md) -->
