@@ -154,7 +154,7 @@ The **rotation** angle conventions are as follows:
 **Angle constraints** follow the same logic as the dimension constraints.
 
 ### Positional constraints
-The **block constraint parameters**(`constraint` inside the building block object) tells us whether this block should be positioned attached to another (parent) block. In that case, a specific node of this building block should be forced to have the same coordinates as a node in the parent block.
+The **positional constraint**(`constraint` inside the building block object) tells us whether this block should be positioned attached to another (parent) block. In that case, a specific node of this building block should be forced to have the same coordinates as a node in the parent block.
 - `parent` : Parent list element, index conventions same as with dimension constraint parameters.
 - `parent_node` : parent node
 - `child_node` : child node
@@ -164,7 +164,7 @@ The node numbering is shown here <img src="./README_figures/node_numbering_json.
 `parent_node` and `child_node` values of -1 denote no constraints. A value of 0 points to node 0, a value of 1 points to node 1 etc (zero-based).
 
 ## Parameter tuning
-To each base file corresponds another `.json` file containing the rules for generating a random bridge while respecting some constraints.
+Each base file can be associated with another `.json` file that contains the rules for generating a random bridge while respecting some constraints.
 
 The parameter file contains a list of elements, each element corresponding either to an entire building block category, or to a specific block.
 
@@ -233,7 +233,7 @@ An example entry is:
 
 For that case, the `offset` of the `height` for the element `wing-wall-sw` is calculated as follows:
 
-$`0.5\times d1_{height, wing_wall-sw} - 0.5\times d2_{height, wing_wall-sw} + 1.5`$
+$`0.5\times d1_{height, wing\_wall-sw} - 0.5\times d2_{height, wing\_wall-sw} + 1.5`$
 
 If the `necessary` is set to `false`, this block might not be generated in the 3D model.
 
@@ -254,8 +254,6 @@ An example of a class dictionary:
 deck 1
 abutment 2
 wing_wall 3
-haunch 4
-egde_beam 5
 ```
 >**_NOTE:_**  Label 0 should be reserved for the background class, otherwise the resulting masks cannot not be trusted.
 
