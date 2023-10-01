@@ -115,13 +115,13 @@ The `.json` file contains a list of elements, each element representing a 3d blo
 <table style="margin-left:auto;margin-right:auto;">
   <tr>
     <td>
-      <img src="./README_figures/longueur.svg" width="200" height="200" />
+      <img src="./README_figures/width.svg" width="200" height="200" />
     </td>
     <td>
-      <img src="./README_figures/largeur.svg" width="200" height="200" />
+      <img src="./README_figures/length.svg" width="200" height="200" />
     </td>
     <td>
-      <img src="./README_figures/hauteur.svg" width="200" height="200" />
+      <img src="./README_figures/height.svg" width="200" height="200" />
     </td>
    </tr>
    <tr>
