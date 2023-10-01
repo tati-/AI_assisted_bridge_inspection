@@ -1,0 +1,887 @@
+[
+  {
+    "label": "deck",
+    "necessary": true,
+    "dimensions": {
+      "width": [
+        {
+          "dependent_var": [
+            "d1",
+            "d2"
+          ],
+          "coefficient": null,
+          "min": 2,
+          "max": 10
+        }
+      ],
+      "height": [
+        {
+          "dependent_var": [
+            "d1",
+            "d2"
+          ],
+          "equation": [
+            {
+              "label": "deck",
+              "constraint": [
+                "dimensions",
+                "width",
+                "d1"
+              ]
+            }
+          ],
+          "coefficient": [
+            {
+              "value": 0.045,
+              "fixed": true
+            }
+          ],
+          "min": 0.3,
+          "max": 0.5
+        }
+      ],
+      "length": [
+        {
+          "dependent_var": [
+            "offset"
+          ],
+          "equation": [
+            {
+              "label": "deck",
+              "constraint": [
+                "dimensions",
+                "width",
+                "d1"
+              ]
+            }
+          ],
+          "coefficient": [
+            {
+              "value": [
+                -0.5,
+                0.5
+              ],
+              "fixed": false
+            }
+          ]
+        }
+      ]
+    },
+    "angles": {
+      "roll": [
+        {
+          "dependent_var": [
+            "v"
+          ],
+          "coefficient": null,
+          "min": -2.5,
+          "max": 2.5
+        }
+      ],
+      "tilt": [
+        {
+          "dependent_var": [
+            "v"
+          ],
+          "coefficient": null,
+          "min": -5,
+          "max": 5
+        }
+      ]
+    }
+  },
+  {
+    "label": "abutment",
+    "necessary": true,
+    "dimensions": {
+      "height": [
+        {
+          "dependent_var": [
+            "d1",
+            "d2"
+          ],
+          "coefficient": null,
+          "min": 2.5,
+          "max": 5
+        }
+      ]
+    }
+  },
+  {
+    "label": "wing_wall",
+    "necessary": false,
+    "dimensions": {
+      "width": [
+        {
+          "dependent_var": [
+            "d1",
+            "d2"
+          ],
+          "coefficient": null,
+          "min": 1,
+          "max": 20
+        }
+      ],
+      "height": [
+        {
+          "dependent_var": [
+            "d1"
+          ],
+          "coefficient": null,
+          "min": 0,
+          "max": 5
+        },
+        {
+          "dependent_var": [
+            "d2"
+          ],
+          "coefficient": null,
+          "min": 1,
+          "max": 5
+        },
+        {
+          "dependent_var": [
+            "offset"
+          ],
+          "coefficient": null,
+          "min": -5,
+          "max": 5
+        }
+      ]
+    }
+  },
+  {
+    "label": "wing_wall",
+    "name": "wing_wall-ne",
+    "necessary": true,
+    "dimensions": {
+      "height": [
+        {
+          "dependent_var": [
+            "d2"
+          ],
+          "coefficient": null,
+          "min": 1,
+          "max": 5,
+          "rmax": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-e",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          },
+          "maxprobability": 0.9
+        },
+        {
+          "dependent_var": [
+            "d1"
+          ],
+          "coefficient": null,
+          "min": 0,
+          "max": 5,
+          "rmax": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-ne",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          }
+        },
+        {
+          "dependent_var": [
+            "offset"
+          ],
+          "coefficient": null,
+          "rmin": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-ne",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d1"
+                ]
+              },
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-ne",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 0.5,
+                "fixed": true
+              },
+              {
+                "value": -0.5,
+                "fixed": true
+              }
+            ]
+          },
+          "rmax": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-ne",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d1"
+                ]
+              },
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-ne",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": -0.5,
+                "fixed": true
+              },
+              {
+                "value": 0.5,
+                "fixed": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "angles": {
+      "heading": [
+        {
+          "dependent_var": [
+            "v"
+          ],
+          "coefficient": null,
+          "rmin": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-e",
+                "constraint": [
+                  "angles",
+                  "heading",
+                  "v"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ],
+            "constant": 180
+          },
+          "rmax": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-e",
+                "constraint": [
+                  "angles",
+                  "heading",
+                  "v"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ],
+            "constant": 270
+          }
+        }
+      ]
+    }
+  },
+  {
+    "label": "wing_wall",
+    "name": "wing_wall-nw",
+    "necessary": true,
+    "dimensions": {
+      "height": [
+        {
+          "dependent_var": [
+            "d2"
+          ],
+          "coefficient": null,
+          "min": 1,
+          "max": 5,
+          "rmax": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-w",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          },
+          "maxprobability": 0.9
+        },
+        {
+          "dependent_var": [
+            "d1"
+          ],
+          "coefficient": null,
+          "min": 0,
+          "max": 5,
+          "rmax": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-nw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          }
+        },
+        {
+          "dependent_var": [
+            "offset"
+          ],
+          "coefficient": null,
+          "rmin": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-nw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d1"
+                ]
+              },
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-nw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 0.5,
+                "fixed": true
+              },
+              {
+                "value": -0.5,
+                "fixed": true
+              }
+            ]
+          },
+          "rmax": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-nw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d1"
+                ]
+              },
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-nw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": -0.5,
+                "fixed": true
+              },
+              {
+                "value": 0.5,
+                "fixed": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "angles": {
+      "heading": [
+        {
+          "dependent_var": [
+            "v"
+          ],
+          "coefficient": null,
+          "rmin": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-w",
+                "constraint": [
+                  "angles",
+                  "heading",
+                  "v"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ],
+            "constant": -90
+          },
+          "rmax": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-w",
+                "constraint": [
+                  "angles",
+                  "heading",
+                  "v"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "label": "wing_wall",
+    "name": "wing_wall-se",
+    "necessary": true,
+    "dimensions": {
+      "height": [
+        {
+          "dependent_var": [
+            "d2"
+          ],
+          "coefficient": null,
+          "min": 1,
+          "max": 5,
+          "rmax": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-e",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          },
+          "maxprobability": 0.9
+        },
+        {
+          "dependent_var": [
+            "d1"
+          ],
+          "coefficient": null,
+          "min": 0,
+          "max": 5,
+          "rmax": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-se",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          }
+        },
+        {
+          "dependent_var": [
+            "offset"
+          ],
+          "coefficient": null,
+          "rmin": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-se",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d1"
+                ]
+              },
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-se",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 0.5,
+                "fixed": true
+              },
+              {
+                "value": -0.5,
+                "fixed": true
+              }
+            ]
+          },
+          "rmax": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-se",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d1"
+                ]
+              },
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-se",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": -0.5,
+                "fixed": true
+              },
+              {
+                "value": 0.5,
+                "fixed": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "angles": {
+      "heading": [
+        {
+          "dependent_var": [
+            "v"
+          ],
+          "coefficient": null,
+          "rmin": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-e",
+                "constraint": [
+                  "angles",
+                  "heading",
+                  "v"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ],
+            "constant": 90
+          },
+          "rmax": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-e",
+                "constraint": [
+                  "angles",
+                  "heading",
+                  "v"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ],
+            "constant": 180
+          }
+        }
+      ]
+    }
+  },
+  {
+    "label": "wing_wall",
+    "name": "wing_wall-sw",
+    "necessary": true,
+    "dimensions": {
+      "height": [
+        {
+          "dependent_var": [
+            "d2"
+          ],
+          "coefficient": null,
+          "min": 1,
+          "max": 5,
+          "rmax": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-w",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          },
+          "maxprobability": 0.9
+        },
+        {
+          "dependent_var": [
+            "d1"
+          ],
+          "coefficient": null,
+          "min": 0,
+          "max": 5,
+          "rmax": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-sw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          }
+        },
+        {
+          "dependent_var": [
+            "offset"
+          ],
+          "coefficient": null,
+          "rmin": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-sw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d1"
+                ]
+              },
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-sw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 0.5,
+                "fixed": true
+              },
+              {
+                "value": -0.5,
+                "fixed": true
+              }
+            ]
+          },
+          "rmax": {
+            "equation": [
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-sw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d1"
+                ]
+              },
+              {
+                "label": "wing_wall",
+                "name": "wing_wall-sw",
+                "constraint": [
+                  "dimensions",
+                  "height",
+                  "d2"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": -0.5,
+                "fixed": true
+              },
+              {
+                "value": 0.5,
+                "fixed": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "angles": {
+      "heading": [
+        {
+          "dependent_var": [
+            "v"
+          ],
+          "coefficient": null,
+          "rmin": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-w",
+                "constraint": [
+                  "angles",
+                  "heading",
+                  "v"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ]
+          },
+          "rmax": {
+            "equation": [
+              {
+                "label": "abutment",
+                "name": "abutment-w",
+                "constraint": [
+                  "angles",
+                  "heading",
+                  "v"
+                ]
+              }
+            ],
+            "coefficient": [
+              {
+                "value": 1,
+                "fixed": true
+              }
+            ],
+            "constant": 90
+          }
+        }
+      ]
+    }
+  }
+]

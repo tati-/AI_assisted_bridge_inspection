@@ -1,4 +1,0 @@
--basefile
-../../data/Bridge_parametric_models/pont_bron/piedroit.json
--cl
-../../data/semantic_classes

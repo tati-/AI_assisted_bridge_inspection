@@ -1,0 +1,10 @@
+-basefile
+../../data/PIPO/json/base-1deck.json
+-params
+../../data/PIPO/json/parameter_range-1deck.json
+-cl
+../../data/PIPO/semantic_classes
+-savefolder
+../../data/PIPO/3d_models
+-bridges
+3

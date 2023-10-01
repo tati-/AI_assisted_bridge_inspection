@@ -1,0 +1,338 @@
+[
+  {
+    "index": 0,
+    "label": "deck",
+    "name": "deck",
+    "color": 8421504,
+    "dimensions": {
+      "width": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      },
+      "length": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      },
+      "height": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      }
+    },
+    "angles": {
+      "heading": {
+        "v": null,
+        "constraint": -1
+      },
+      "tilt": {
+        "v": null,
+        "constraint": -1
+      },
+      "roll": {
+        "v": null,
+        "constraint": -1
+      }
+    },
+    "constraint": {
+      "parent": -1,
+      "parent_node": -1,
+      "child_node": -1
+    }
+  },
+  {
+    "index": 1,
+    "label": "abutment",
+    "name": "abutment-e",
+    "color": 16776960,
+    "dimensions": {
+      "width": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      },
+      "length": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": 0,
+        "offset_constraint": -1
+      },
+      "height": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      }
+    },
+    "angles": {
+      "heading": {
+        "v": null,
+        "constraint": -1
+      },
+      "tilt": {
+        "v": null,
+        "constraint": -1
+      },
+      "roll": {
+        "v": null,
+        "constraint": 0
+      }
+    },
+    "constraint": {
+      "parent": 0,
+      "parent_node": 0,
+      "child_node": 1
+    }
+  },
+  {
+    "index": 2,
+    "name": "abutment-w",
+    "label": "abutment",
+    "color": 16776960,
+    "dimensions": {
+      "width": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      },
+      "length": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": 0,
+        "offset_constraint": -1
+      },
+      "height": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      }
+    },
+    "angles": {
+      "heading": {
+        "v": null,
+        "constraint": -1
+      },
+      "tilt": {
+        "v": null,
+        "constraint": -1
+      },
+      "roll": {
+        "v": null,
+        "constraint": 0
+      }
+    },
+    "constraint": {
+      "parent": 0,
+      "parent_node": 1,
+      "child_node": 0
+    }
+  },
+  {
+    "index": 3,
+    "name": "wing_wall-nw",
+    "label": "wing_wall",
+    "color": 52377,
+    "dimensions": {
+      "width": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": 2
+      },
+      "length": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      },
+      "height": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      }
+    },
+    "angles": {
+      "heading": {
+        "v": null,
+        "constraint": -1
+      },
+      "tilt": {
+        "v": null,
+        "constraint": -1
+      },
+      "roll": {
+        "v": null,
+        "constraint": -1
+      }
+    },
+    "constraint": {
+      "parent": 2,
+      "parent_node": 3,
+      "child_node": 3
+    }
+  },
+  {
+    "index": 4,
+    "name": "wing_wall-ne",
+    "label": "wing_wall",
+    "color": 52377,
+    "dimensions": {
+      "width": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": 1
+      },
+      "length": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      },
+      "height": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      }
+    },
+    "angles": {
+      "heading": {
+        "v": null,
+        "constraint": -1
+      },
+      "tilt": {
+        "v": null,
+        "constraint": -1
+      },
+      "roll": {
+        "v": null,
+        "constraint": -1
+      }
+    },
+    "constraint": {
+      "parent": 1,
+      "parent_node": 2,
+      "child_node": 7
+    }
+  },
+  {
+    "index": 5,
+    "name": "wing_wall-sw",
+    "label": "wing_wall",
+    "color": 52377,
+    "dimensions": {
+      "width": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": 2
+      },
+      "length": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      },
+      "height": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      }
+    },
+    "angles": {
+      "heading": {
+        "v": null,
+        "constraint": -1
+      },
+      "tilt": {
+        "v": null,
+        "constraint": -1
+      },
+      "roll": {
+        "v": null,
+        "constraint": -1
+      }
+    },
+    "constraint": {
+      "parent": 2,
+      "parent_node": 7,
+      "child_node": 7
+    }
+  },
+  {
+    "index": 6,
+    "name": "wing_wall-se",
+    "label": "wing_wall",
+    "color": 52377,
+    "dimensions": {
+      "width": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": 1
+      },
+      "length": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      },
+      "height": {
+        "d1": null,
+        "d2": null,
+        "offset": null,
+        "constraint": -1,
+        "offset_constraint": -1
+      }
+    },
+    "angles": {
+      "heading": {
+        "v": null,
+        "constraint": -1
+      },
+      "tilt": {
+        "v": null,
+        "constraint": -1
+      },
+      "roll": {
+        "v": null,
+        "constraint": -1
+      }
+    },
+    "constraint": {
+      "parent": 1,
+      "parent_node": 6,
+      "child_node": 3
+    }
+  }
+]

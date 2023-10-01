@@ -1,0 +1,10 @@
+-savefolder
+../../data/PIPO/datasets
+-textures
+../../data/textures/bridge_materials/bridge_materials.blend
+-frames
+20
+--img-cov
+0.1
+--struct-cov
+0.1
