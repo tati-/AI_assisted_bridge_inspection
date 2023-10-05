@@ -137,6 +137,26 @@ def json_lowercase(json_file: str):
         string = json.dumps(json.load(f))
     string = string.lower()
     return json.loads(string)
+
+
+def numpy2native(var):
+    """
+    this function takes a variable, and if it is a numpy data format
+    converts it to native python format (useful to then dump data into a
+    json file, since json does not accept numpy datatypes)
+    """
+    if 'numpy' in str(type(var)):
+        try:
+            if 'int' in str(type(var)):
+                return int(var)
+            elif 'float' in str(type(var)):
+                return float(var)
+            elif 'ndarray' in str(type(var)):
+                return var.tolist()
+        except:
+            return var
+    else:
+        return var
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

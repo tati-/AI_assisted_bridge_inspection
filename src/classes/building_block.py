@@ -288,7 +288,8 @@ class Hexahedron:
             json.dump([self.to_dict()], fp)
 
 
-    def to_fv(self) -> npt.ArrayLike:
+    @property
+    def fv(self) -> npt.ArrayLike:
         """
         Convert hexahedron dimensions to a feature vector to be used in
         optimization algorithms

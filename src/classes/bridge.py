@@ -33,7 +33,7 @@ class BridgeModel:
         @json_param_path: a json file containing the parameter margins, in order to
                         to randomize the bridge structure
         !!! The wing walls initial placement is 90 degrees with respect to the
-            abutment (piedroit) and facing towards the west.
+            abutment and facing towards the west.
         NOTE: constraints in .json file are pointers to building blocks (zero-based)
         Constraint conventions:
         ID in Json file
@@ -455,15 +455,15 @@ class BridgeModel:
         """
         infer if wing walls are "mur en aile" or "mur en retour",
         and add an indication in their name
-        mur en retour: 90 degree angle with the abutment(piedroit)
+        mur en retour: 90 degree angle with the abutment
         mur en aile: all other angles
         """
-        wing_walls = [blo for blo in self.building_blocks if blo.label=='mur']
+        wing_walls = [blo for blo in self.building_blocks if blo.label=='wing_wall']
         for wall in wing_walls:
             # define the abutment that the wall is attached on
             # the abutments last letter (e or w) should correspond the
             # one of the wall
-            abutment = [blo for blo in self.building_blocks if blo.label=='piedroit'
+            abutment = [blo for blo in self.building_blocks if blo.label=='abutment'
                         and blo.name[-1] == wall.name[-1]][0]
             if np.any([math.isclose(wall.rotations['heading']-abutment.rotations['heading'], i, abs_tol=5)
                         for i in [0, 180, -180, 360]]):
@@ -471,7 +471,7 @@ class BridgeModel:
             else:
                 cl = 'en_aile'
             # add the characterization to the wall's name
-            wall.name = re.sub(f'(mur)(-[nsew]{{1,2}})$', rf'\1_{cl}\2', wall.name)
+            wall.name = re.sub(f'(wing_wall)(-[nsew]{{1,2}})$', rf'\1_{cl}\2', wall.name)
 
             self.update_data()
 
@@ -552,14 +552,15 @@ class BridgeModel:
         return mesh
 
 
-    def to_fv(self) -> npt.ArrayLike:
+    @property
+    def fv(self) -> npt.ArrayLike:
         """
         Convert bridge dimensions to a feature vector to be used in
         optimization algorithms
         """
         fv = np.zeros(12*len(self.building_blocks))
         for i, block in enumerate(self.building_blocks):
-            fv[i*12: i*12+12] = block.to_fv()
+            fv[i*12: i*12+12] = block.fv
 
         return fv
 
@@ -584,7 +585,8 @@ class BridgeModel:
         self.update_data()
 
 
-    def to_params(self):
+    @property
+    def params(self):
         """
         returns a not nested dictionary with the parameters that the
         sizing process is supposed to define, and their current values
@@ -690,7 +692,7 @@ class BridgeModel:
         scene = bpy.context.scene
 
         # add fake ground to allow IFC placement
-        abutments = [obj for obj in bpy.data.objects if 'piedroit' in obj.name]
+        abutments = [obj for obj in bpy.data.objects if 'abutment' in obj.name]
         bl.add_ground(abutments)
 
         # create bim project
