@@ -1,0 +1,9 @@
+-dp
+../../data/real_MIRAUAR
+-mp
+../../models/Bridge_parametric_models/PIPO/dataset_MIRAUAR/sv0001/Unet_mobilenetv2_pr_final
+-cl
+../../data/semantic_classes
+-ne
+200
+--finetune

@@ -5,16 +5,12 @@ import pdb
 import cv2
 import glob
 import copy
-import time
-import math
-import random
-import shutil
-import itertools
 import numpy as np
 import pandas as pd
 from natsort import natsorted
 
 from .decorators import timer
+
 
 @timer
 def organize_sample_paths(image_paths, mask_paths, labels=None, savefile=None):
@@ -101,7 +97,7 @@ def data_loader(image_paths, mask_paths, labels=None, width=640, height=480):
     masks[..., 0] = tmp.astype(float)
     del tmp
 
-    return images, masks, labels
+    return images, masks
 
 
 def sort_and_load_data(image_paths, mask_paths, labels=None, width=640, height=480):
@@ -116,9 +112,54 @@ def sort_and_load_data(image_paths, mask_paths, labels=None, width=640, height=4
     df = organize_sample_paths(image_paths, mask_paths, labels=labels)
     image_paths = list(df.image) #ordered image paths
     mask_paths = {key: list(df[key]) for key in df.columns[1:]}# dictionary with ordered mask paths
-    imgs, masks, labels = data_loader(image_paths, mask_paths, labels=labels, width=width, height=height)
+    imgs, masks = data_loader(image_paths, mask_paths, labels=labels, width=width, height=height)
 
-    return imgs, masks, labels
+    return imgs, masks
+
+
+def data_generator(image_paths: list, mask_paths: list, labels: list=None,
+                    width: int=640, height: int=480, bs: int=8):
+    """
+    INPUTS:
+    @image_paths: a list of image paths
+    @mask_paths: a dictionary, with items {label: [list of mask_paths]} for all the
+                labels
+    @labels: an ordered list of label descriptions. Has to be a subset of the mask
+            keys()
+    @width: integer, desired width of images in pixels
+    @height: integer, desired height of images in pixels
+    """
+    # make sure the batch size is not too large to prevent any iteration
+    bs = len(image_paths) if bs>len(image_paths) else bs
+    indices = np.array(range(len(image_paths)))
+    image_paths = np.asarray(image_paths)
+    mask_paths = {key: np.asarray(val) for key, val in mask_paths.items()}
+    while True:
+        if len(indices)<bs:
+            indices = np.array(range(len(image_paths)))
+        batch_indices = np.random.choice(indices, size=bs, replace=False)
+        indices = np.setdiff1d(indices, batch_indices)
+        b_img_paths = image_paths[batch_indices]
+        b_mask_paths = {key: mask_paths[key][batch_indices] for key in mask_paths.keys()}
+
+        x,y = data_loader(b_img_paths, b_mask_paths, labels=labels,
+                            width=width, height=height)
+        yield x,y
+
+
+def unique_bridges(image_paths: list) -> list:
+    """
+    given a list of image paths returns a list with the unique
+    bridge identifiers. (which implies the number of seperate bridges)
+    NOTE: this function supposes that the image files are named
+            <whatever>_bridge<#>_xxxx.png.
+    """
+    filenames = [os.path.basename(x) for x in image_paths]
+    tmp = [x[x.find('bridge'):] for x in filenames]
+    tmp = [x[:x.find('_')] for x in tmp]
+    bridges_ids = list(set([x for x in tmp]))
+
+    return bridges_ids
 
 
 def clean_dataset(image_paths, mask_paths, coverage=0):
@@ -152,6 +193,25 @@ def clean_dataset(image_paths, mask_paths, coverage=0):
 
     print(f'{cnt_corrupted} corrupted images were found (more than 20% black)')
     return discard_images
+
+
+@timer
+def min_image_size(image_paths: list) -> tuple:
+    """
+    this functions finds the smaller width and height among a set of
+    images
+    """
+    widths, heights = [], []
+    for p in image_paths:
+        im = cv2.imread(p)
+        try:
+            widths.append(im.shape[1])
+            heights.append(im.shape[0])
+        except:
+            print(p)
+            pdb.set_trace()
+
+    return min(widths), min(heights)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

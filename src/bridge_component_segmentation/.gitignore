@@ -1,0 +1,13 @@
+*.png
+*.jpg
+*.jpeg
+*.eps
+*.pdf
+*.blend
+*.obj
+.DS_Store
+.python-version
+**/__pycache__/
+**/.DS_Store
+deprecated/*
+misc/*

@@ -7,11 +7,12 @@ import json
 import shutil
 import flatdict
 import numpy as np
+import pandas as pd
 from natsort import natsorted
 
 from .decorators import forall, verify_format
 
-def create_folders(basefolder, *folders):
+def create_folders(basefolder: str, *folders):
     """
     creates a number of subfolders inside a basefolder
     """
@@ -42,7 +43,7 @@ def last_file_index(filenames):
         return int(match.groups()[0])
 
 
-def files_with_extensions(*args, datapath, recursive=False):
+def files_with_extensions(*args, datapath: str, recursive: bool=False):
     """
     returns a list of files inside the datapath that have one of the
     extensions
@@ -57,26 +58,39 @@ def files_with_extensions(*args, datapath, recursive=False):
     #     files = [str(x) for x in Path(datapath).rglob('*')]
     # else:
     #      files = [str(x) for x in Path(datapath).glob('*')]
-    files = [f for f in files if re.search(pattern, f)]
+    files = [f for f in files if re.search(pattern, f) and not f.startswith('._')]
     return files
 
 
-def available_id(savefolder, prefix='dataset'):
+def available_id(savefolder: str, prefix: str='') -> str:
     """
     finds an unused id of the form 'vXXXX' for an experiment. The criterion is
     that no folder '<prefix>_<id>' exists inside savefolder
     """
     i = 0
     while True:
-        dts_id = f'v{i:04d}'
-        folder = os.path.join(savefolder, f'{prefix}_{dts_id}')
+        tmp_id = f'{prefix}v{i:04d}'
+        folder = os.path.join(savefolder, f'{tmp_id}')
         i += 1
         if not os.path.exists(folder):
             break
-    return dts_id
+    return tmp_id
 
 
-def txt2dict(txt_path):
+def copy_ext(src: str, dest: str) -> None:
+    """
+    extension of shutil copy2 function to deal with non existing folder.
+    If a folder does not exist, this function creates it
+    """
+    if Path(dest).is_dir():
+        os.makedirs(dest, exist_ok=True)
+    else:
+        os.makedirs(Path(dest).parent, exist_ok=True)
+
+    shutil.copy2(src, dest)
+
+
+def txt2dict(txt_path: str) -> dict:
     """
     reads a txt file whose each line contains 2 elements, the first being the
     category description (matching the object material name in blender), and the second
@@ -84,14 +98,63 @@ def txt2dict(txt_path):
     Fills a dictionary with the category descriptions as keys and the ids as values,
     and returns it
     """
-    category_dict = dict()
+    dictio = dict()
     with open(txt_path, "r") as f:
         for line in f.readlines():
             line = [x for x in line.split()]
             if line == "\n":
                 continue
-            category_dict[line[0]] = int(line[1])
-    return category_dict
+            dictio[line[0]] = line[1]
+    return dictio
+
+
+def dict2txt(dictio: dict, savepath: str):
+    with open(savepath, "w") as f:
+        lines = ['{} {}\n'.format(key, value) for key,value in dictio.items()]
+        f.writelines(lines)
+
+
+def dict2csv(dictio: dict, savepath: str):
+    """
+    saves a dictionary in csv format. The dictionary keys will be the
+    columns
+    """
+    if np.all([type(x) in [list, np.ndarray] for x in dictio.values()]):
+        df = pd.DataFrame.from_dict(dictio)
+    else:
+        df = pd.Series(dictio).to_frame().T
+    with open(savepath, mode='a') as f:
+        df.to_csv(f, mode='a', float_format="%.3f", header=f.tell()==0)
+
+
+# def dict2excel(dictio: dict, savepath: str, sheet_name: str='Sheet1'):
+#     """
+#     saves a dictionary in xlsx format. The dictionary keys will be the
+#     columns
+#     """
+#     if np.all([type(x) in [list, np.ndarray] for x in dictio.values()]):
+#         df = pd.DataFrame.from_dict(dictio)
+#     else:
+#         df = pd.Series(dictio).to_frame().T
+#     header = False
+#     if not os.path.exists(savepath):
+#         with pd.ExcelWriter(savepath) as writer:
+#             pd.DataFrame().to_excel(writer)
+#         header = True
+#     with pd.ExcelWriter(savepath, mode='a', if_sheet_exists='overlay', engine="openpyxl") as writer:
+#         pdb.set_trace()
+#         # there is a problem here it does not work as expected when appending to
+#         # existing file
+#         df.to_excel(writer, sheet_name=sheet_name, float_format="%.3f", header=header)
+#
+#     # if not os.path.exists(excel_file):
+#     #     with pd.ExcelWriter(excel_file) as writer:
+#     #         pd.DataFrame().to_excel(writer)
+#     # book = openpyxl.load_workbook(excel_file)
+#     # with pd.ExcelWriter(excel_file, engine='openpyxl', mode='a') as writer:
+#     #     writer.book = book
+#     #     writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+#     #     information_radius.to_excel(writer, sheet_name='information_radius_asked_questions_{}mues'.format(len(mues)))
 
 
 def all_dict_values(dictio: dict):

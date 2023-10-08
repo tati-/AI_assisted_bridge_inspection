@@ -14,4 +14,4 @@ This work is organised in the following tasks:
 
 - [Generation of a synthetic dataset of portal frame bridges from a geometric model.](src/bridge_synthetic)
 
-<!-- - [Semantic classification of bridge structural components.](bridge_semantic_segmentation.md) -->
+- [Semantic segmentation of bridge structural components.](src/bridge_component_segmentation)
