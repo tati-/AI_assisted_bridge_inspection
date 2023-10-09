@@ -26,7 +26,7 @@ from split_dataset import split
 import modules.dataset_utils as dts
 import modules.visualization as vis
 from modules.decorators import timer
-from modules.semantic_categories import labels_pipo
+from modules.constants import LABELS_PIPO
 exec(open('../modules/ml_imports.py').read())
 
 
@@ -321,7 +321,7 @@ if __name__ == "__main__":
             'optimizer': args.opt,
             'batch_size': args.bs,
             'nEpochs': args.ne,
-            'classes': labels_pipo
+            'classes': LABELS_PIPO
             }
     # save experiment parameters in textfile
     utils.dict2txt(info, paths['info'])
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     ############################################################################
     # get all filepaths
     data, labels, set_size = prepare_data_for_training(datapath=args.dp, batch_size=args.bs,
-                                    infopath=paths['info'], labels=labels_pipo,
+                                    infopath=paths['info'], labels=LABELS_PIPO,
                                     dataset_prc=args.dtprc)
     # save labels in a text file
     labels_dict = {i:label for i,label in enumerate(labels)}

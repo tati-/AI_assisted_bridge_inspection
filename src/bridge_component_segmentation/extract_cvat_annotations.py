@@ -26,7 +26,7 @@ import modules.utils as utils
 import modules.cvat_utils as cvat
 import modules.dataset_utils as dts
 import modules.visualization as vis
-from modules.semantic_categories import labels_pipo
+from modules.constants import LABELS_PIPO
 
 def get_args():
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
     # infer masks from polygons of xml file and save them
     labels = xml2masks(xml=args.cvat_xml, img_dir=args.image_dir,
-                        save_dir=output_dir, labels=labels_pipo, scale_factor=args.scale_factor)
+                        save_dir=output_dir, labels=LABELS_PIPO, scale_factor=args.scale_factor)
 
     ############################################################################
     #                         LOAD AND SHOW IMAGES                             #

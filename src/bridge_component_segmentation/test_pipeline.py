@@ -14,7 +14,7 @@ import modules.utils as utils
 import modules.ml_utils as ml
 import modules.dataset_utils as dts
 from modules.decorators import timer
-from modules.semantic_categories import labels_pipo
+from modules.constants import LABELS_PIPO
 exec(open('../modules/ml_imports.py').read())
 
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     ############################################################################
     #                          LOAD DATA                                       #
     ############################################################################
-    data, labels = get_test_data(datapath=args.dp, batch_size=args.bs, labels=labels_pipo)
+    data, labels = get_test_data(datapath=args.dp, batch_size=args.bs, labels=LABELS_PIPO)
 
     ############################################################################
     #                          TEST MODEL                                     #

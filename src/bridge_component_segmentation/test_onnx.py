@@ -19,7 +19,7 @@ from natsort import natsorted
 sys.path.append('..')
 import modules.utils as utils
 import modules.visualization as vis
-from modules.semantic_categories import labels_pipo
+from modules.constants import LABELS_PIPO
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -96,7 +96,7 @@ if __name__ == "__main__":
                                   Path(args.modelpath).stem)
         os.makedirs(savefolder, exist_ok=True)
         vis.inspect_predictions(*[(test_imgs[i], None, onnx_preds[i]) for i in range(len(test_imgs))],
-                                labels=labels_pipo, savefolder=savefolder)
+                                labels=LABELS_PIPO, savefolder=savefolder)
         print(f'Inspection predictions saved in {savefolder}')
 """
 ############################################################################
