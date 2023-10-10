@@ -6,7 +6,7 @@
 **/*.blend
 **/*.blend1
 **/*.obj
-**.*.mtl
+**/*.mtl
 **/*.ifc
 .DS_Store
 **/.python-version

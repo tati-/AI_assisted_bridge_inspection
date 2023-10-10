@@ -23,6 +23,7 @@ import numpy as np
 sys.path.append('..')
 import modules.utils as utils
 import modules.blender_utils as bl
+from modules.constants import CLASSES_PIPO
 from classes.bridge import BridgeModel as Bridge
 from modules.decorators import timer
 
@@ -61,7 +62,7 @@ def generate_bridge_models(basefile, params=None, savefolder=None, cl=None, brid
         # labels_info = pd.read_csv(args.cl)
         # labels_info.description = labels_info.description.apply(lambda desc: unidecode.unidecode(desc).lower())
         classes_dict = utils.txt2dict(cl)
-        classes_dict = {unidecode.unidecode(desc).lower(): i for desc,i in classes_dict.items()}
+        classes_dict = {unidecode.unidecode(desc).lower(): int(i) for desc,i in classes_dict.items()}
 
     # base numbering on the blender file
     start_ind = utils.last_file_index(
