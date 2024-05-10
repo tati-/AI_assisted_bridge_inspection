@@ -22,8 +22,15 @@ from .decorators import forall
 
 
 # get values of preexisting colormap as list
-class_colors = cm.get_cmap('tab20')((np.linspace(0, 1, 12)))[:, :3]
-class_colors[0, :] = np.asarray([0,0,0])
+# class_colors = cm.get_cmap('tab20')((np.linspace(0, 1, 12)))[:, :3]
+# class_colors[0, :] = np.asarray([0,0,0])
+class_colors = np.asarray([[0,0,0], # background
+                           [0.918, 0.761, 0.486], # abutment
+                           [0.910, 0.627, 0.686], # deck
+                           [0.753, 0.426, 0.573], # wing wall
+                           [0.690, 0.694, 0.208], # haunch
+                           [0.617, 0.855, 0.898] # edge beam
+                           ])
 
 
 def categorical2color_img(cat_img, colors):
@@ -257,13 +264,16 @@ def plot_training_history(hist, save_path=None):
 
 def plot_confusion_matrix(confusion_matrix, labels=None, savepath=None):
     labels = list(range(confusion_matrix.max())) if labels is None else labels
-    fig = plt.figure(figsize=(12,12))
+    fig = plt.figure(figsize=(12,15))
     ax = plt.axes()
     # ax.set_title('True VS predicted class')
     ax.grid(False)
     cm = ConfusionMatrixDisplay(confusion_matrix=confusion_matrix,
                 display_labels=labels)
-    cm.plot(ax=ax, cmap='cividis') #'magma'
+    cm.plot(ax=ax,
+            xticks_rotation='vertical',
+            cmap='cividis',
+            values_format='.2f') #'magma'
     if savepath is None:
         plt.show()
     else:

@@ -135,7 +135,7 @@ if __name__ == "__main__":
     args = get_args()
 
     paths = dict()
-    dts_id = f'dataset_{utils.available(args.savefolder)}'
+    dts_id = f'dataset_{utils.available_id(args.savefolder)}'
     # dts_id = 'test'
     paths['base'] = utils.create_folders(args.savefolder, dts_id)[0]
     paths['demo'], paths['overview'] = utils.create_folders(paths['base'],

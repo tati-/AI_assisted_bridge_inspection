@@ -6,7 +6,6 @@ that contain a significant amount of labels stay)
 import os
 import re
 import sys
-import pdb
 import cv2
 import glob
 import copy
@@ -76,6 +75,8 @@ def dataset_overview(image_paths, mask_paths, savefolder='.'):
 
     # save number of pixels per class in csv
     csv_path = os.path.join(savefolder, 'class_concentration.csv')
+    breakpoint()
+    print(class_stats)
     class_stats.to_csv(csv_path)
 
 

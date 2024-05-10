@@ -33,7 +33,7 @@ class BridgeModel:
         @json_param_path: a json file containing the parameter margins, in order to
                         to randomize the bridge structure
         !!! The wing walls initial placement is 90 degrees with respect to the
-            abutment and facing towards the west.
+            abutment (piedroit) and facing towards the west.
         NOTE: constraints in .json file are pointers to building blocks (zero-based)
         Constraint conventions:
         ID in Json file
@@ -61,14 +61,12 @@ class BridgeModel:
         """
         # the json file is in french, here I translate it to have some more
         # representative keys in english
-        # self.data = utils.json_lowercase(json_data_path)
-        # self.data = translate.translate_keys(*self.data)
+        # self.data = translate.translate_json(json_data_path)
         self.initialize_visibility()
         if json_param_path is not None:
             with open(json_param_path) as json_file:
                 rules_dict = json.load(json_file)
             # rules_dict = translate.translate_json(json_param_path)
-            # rules_dict = utils.dict_lowercase(*rules_dict)
             self.randomize_data(rules_dict)
         self.constraints_from_dict()
         self.blocks_from_dict()
@@ -80,7 +78,8 @@ class BridgeModel:
         sets all building blocks to the same value
         """
         for item in self.data:
-            item['visible'] = value
+            if 'visible' not in item.keys():
+                item['visible'] = value
 
 
     def initialize_mesh_data(self):
@@ -309,49 +308,50 @@ class BridgeModel:
         return angles['roll'], angles['tilt'], angles['heading']
 
 
-    def get_translation_offset(self, index: int) -> npt.ArrayLike:
+    def set_translation_offset(self, index: int) -> npt.ArrayLike:
         """
         This function calculates the new center of a child building block
         (assuming the old center is (0,0,0)), so that a child's node is connected
-        to a parent's node. The information on the parent building block, and the
-        connecting nodes are given in the JSON file.
+        to a parent's node, and adjusts its offset.
+        The information on the parent building block, and the connecting nodes
+        are given in the JSON file.
         INPUTS:
         @index: child building block's index
         OUTPUTS:
         @center_point_coords: numpy array containing the x,y,z coordinates where
             the child building block should be centered
         """
-        offset_coords = np.zeros(3)
+        self.building_blocks[index].offset = np.zeros(3)
+        i = index
         # if this building block has no constraints, offset is (0,0,0)
         if (self.constraints[index].parent<0 or
             self.constraints[index].parent_node<0 or
             self.constraints[index].child_node<0):
-            return offset_coords
+            return
 
-        while self.constraints[index].parent>=0:
+        while self.constraints[i].parent>=0:
             # index of parent building block
-            i_parent=self.constraints[index].parent
+            i_parent=self.constraints[i].parent
             # assert self.data[index]['constraint']['parent_node']>=0, "Undefined parent node in the constraint declaration"
             # assert self.data[index]['constraint']['child_node']>=0, "Undefined child node in the constraint declaration"
 
-            if self.constraints[index].parent_node>=0:
+            if self.constraints[i].parent_node>=0:
                 # node (vertex) of parent building_block
-                parent_node =self.constraints[index].parent_node
+                parent_node =self.constraints[i].parent_node
                 parent_node_coords = self.building_blocks[i_parent].global_coords[parent_node]
 
-            if self.constraints[index].child_node>=0:
+            if self.constraints[i].child_node>=0:
                 # node (vertex) of child building block
-                child_node = self.constraints[index].child_node
-                child_node_coords = self.building_blocks[index].global_coords[child_node]
+                child_node = self.constraints[i].child_node
+                child_node_coords = self.building_blocks[i].global_coords[child_node]
+                # child_node_coords = self.building_blocks[index].local_coords[child_node]
 
             # define the new center of the current building block, so that
             # the node1 (N1) of the parent block and the node2 (N2) of the
             # child block coincide
-            offset_coords += parent_node_coords - child_node_coords
+            self.building_blocks[index].offset += parent_node_coords - child_node_coords
 
-            index = i_parent
-
-        return offset_coords
+            i = i_parent
 
 
     def constraints_from_dict(self):
@@ -394,7 +394,7 @@ class BridgeModel:
                 continue
 
         for block in self.building_blocks:
-            block.offset = self.get_translation_offset(block.id)
+            self.set_translation_offset(block.id)
 
 
     def update_child_blocks(self, parent_id:int):
@@ -427,8 +427,7 @@ class BridgeModel:
         child_blocks = [x for i,x in enumerate(self.building_blocks)
                         if self.constraints[i].parent==parent_id]
         for block in child_blocks:
-            block.offset = self.get_translation_offset(block.id)
-            # self.building_blocks[index].offset = self.get_translation_offset(index)
+            self.set_translation_offset(block.id)
 
 
     def update_data(self):
@@ -455,7 +454,7 @@ class BridgeModel:
         """
         infer if wing walls are "mur en aile" or "mur en retour",
         and add an indication in their name
-        mur en retour: 90 degree angle with the abutment
+        mur en retour: 90 degree angle with the abutment(piedroit)
         mur en aile: all other angles
         """
         wing_walls = [blo for blo in self.building_blocks if blo.label=='wing_wall']

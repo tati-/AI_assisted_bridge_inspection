@@ -1,11 +1,7 @@
 -dp
-../../data/Bridge_parametric_models/PIPO/dataset_MIRAUAR
--cl
-../../data/semantic_classes
+../../../../data/Bridge_parametric_models/PIPO/dataset_MIRAUAR
 -arch
 Unet
--dtprc
-1
 -ne
-200
+100
 --synthetic

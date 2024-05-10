@@ -102,7 +102,7 @@ def initialize_blender_env(**kwargs):
     add_sky(scene)
 
 
-def object_vertices(obj, position=None, corner=False):
+def object_vertices(obj, position:str=None, corner: bool=False):
     """
     returns a matrix containing a subset of an object's vertices'
     global coordinates, that satisfy the position requirements
@@ -142,7 +142,7 @@ def object_vertices(obj, position=None, corner=False):
     return coords
 
 
-def vertices_by_relative_position(coords, position):
+def vertices_by_relative_position(coords: npt.arrayLike, position:str):
     """
     get the subset of coordinates that corresponds to the position
     description, with respect to the center of gravity of the vertices.
@@ -196,7 +196,7 @@ def ojb2hexahedronCoords(obj):
 
 
 @iterate(8)
-def simulate_hexahedral_coords(hex_i, coords):
+def simulate_hexahedral_coords(hex_i: int, coords: npt.ArrayLike):
     """
     takes am array of 3d coords, and
     an index indicating one of the following positions:
@@ -305,7 +305,7 @@ def separate_by_material(object):
 
 
 @forall
-def subdivide_meshes(obj, n_cuts=1):
+def subdivide_meshes(obj, n_cuts: int=1):
     # subdivide meshes so that the vertex visibility works better
     bm = bmesh.new()
     bm.from_mesh(obj.data)
@@ -335,7 +335,7 @@ def simplify_meshes(obj):
 
 
 @forall
-def remove_doubles_from_meshes(obj, dist=0.3):
+def remove_doubles_from_meshes(obj, dist: float=0.3):
     """
     remove vertices that are closer than dist from the objects' mesh
     """
@@ -460,7 +460,7 @@ def set_sky(scene):
 
 @optional
 @verify_format('.blend')
-def add_materials(filepath=None, link=True):
+def add_materials(filepath: str=None, link: bool=True):
     """
     finds all textures that are included in a blend file (suggestion: download from polyhaven)
     and appends them to the file as materials. Only textures that are marked as
@@ -573,7 +573,7 @@ def init_compositing_graph(scene, categories, savepath='.'):
                             output=output_node.inputs[category])
 
 
-def set_compositing_graph(scene=None, savepath='.', bridgename='somebridge'):
+def set_compositing_graph(scene=None, savepath: str='.', bridgename: str='somebridge'):
     """
     defines compositing node graph so that the rgb rendered image, along with
     a binary mask for every category are saved
@@ -623,7 +623,7 @@ def rename_objects_from_material(objects):
             continue
 
 
-def bridgeObject2componentObjects(obj, classes_dict=None):
+def bridgeObject2componentObjects(obj, classes_dict: dict[str, int]=None):
     """
     this function takes a single object that represents a bridge,
     with different materials for each component, and breaks it up
@@ -667,7 +667,7 @@ def infer_class_dict():
     return class_dict
 
 
-def generate_renders(objects=None, n_frames=1, min_coverage=0):
+def generate_renders(objects=None, n_frames: int=1, min_coverage=0):
     """
     this function creates and saves a synthetic dataset
     (images and groundtruths) based on certain specifications

@@ -21,6 +21,7 @@ import unidecode
 import numpy as np
 
 sys.path.append('..')
+import modules.constants as constants
 import modules.utils as utils
 import modules.blender_utils as bl
 from modules.constants import CLASSES_PIPO
@@ -33,7 +34,7 @@ def get_args():
     arg = parser.add_argument
     arg('-basefile', help='input file path [acceptable formats: .json]', type=str, required=True)
     arg('-params', help='json file path with parameters', type=str)
-    arg('-cl', '-classes', help='path to .txt file containing the class descriptions', type=str)
+    # arg('-cl', '-classes', help='path to .txt file containing the class descriptions', type=str)
     arg('-savefolder', help= 'folder to save generated dataset [default: same as input file directory]', type=str)
     arg('-bridges', help='number of bridges [default: 1]', type=int, default=1)
     args = parser.parse_args()
@@ -52,17 +53,18 @@ def generate_bridge_models(basefile, params=None, savefolder=None, cl=None, brid
     obj_path, blender_path = utils.create_folders(savefolder, 'obj', 'blender')
 
     # labels_info = pd.DataFrame(data={'id': cat_dict.values(), 'description':cat_dict.keys()})
-    if cl is None:
-        warnings.warn('\n##-----## \nWarning: No category dictionary file was given, '\
-                    'therefore the classes will be inferred from the material names. '\
-                    'This might generate inconsistencies among images generated '\
-                    'from different files. \n##-----##')
-        classes_dict=None
-    else:
-        # labels_info = pd.read_csv(args.cl)
-        # labels_info.description = labels_info.description.apply(lambda desc: unidecode.unidecode(desc).lower())
-        classes_dict = utils.txt2dict(cl)
-        classes_dict = {unidecode.unidecode(desc).lower(): int(i) for desc,i in classes_dict.items()}
+    # if cl is None:
+    #     warnings.warn('\n##-----## \nWarning: No category dictionary file was given, '\
+    #                 'therefore the classes will be inferred from the material names. '\
+    #                 'This might generate inconsistencies among images generated '\
+    #                 'from different files. \n##-----##')
+    #     classes_dict=None
+    # else:
+    #     # labels_info = pd.read_csv(args.cl)
+    #     # labels_info.description = labels_info.description.apply(lambda desc: unidecode.unidecode(desc).lower())
+    #     classes_dict = utils.txt2dict(cl)
+    #     classes_dict = {unidecode.unidecode(desc).lower(): int(i) for desc,i in classes_dict.items()}
+    classes_dict = constants.CLASSES_PIPO
 
     # base numbering on the blender file
     start_ind = utils.last_file_index(
@@ -75,23 +77,22 @@ def generate_bridge_models(basefile, params=None, savefolder=None, cl=None, brid
         ############################################################################
         #                LOAD AND INITIALISE MESH                                  #
         ############################################################################
-        obj_file = os.path.join(obj_path, f'bridge{bridge_id}.obj')
         blender_file = os.path.join(blender_path, f'bridge{bridge_id}.blend')
 
         bridge_model = Bridge(json_data_path=basefile,
                 json_param_path=params)
-        bridge_model.to_obj(objPath=obj_file)
+        bridge_model.to_blender(blenderPath=blender_file)
         # the BridgeModel object here only serves to create the 3d mesh
         del bridge_model
 
-        bpy.ops.import_scene.obj(filepath=obj_file, axis_forward='Y', axis_up='Z')
-        obj = bpy.context.selected_objects[0] # returns an array of objects in the scene
-
-        ############################################################################
-        #                SPLIT TO SEMANTIC OBJECTS                                 #
-        ############################################################################
-        bl.bridgeObject2componentObjects(obj, classes_dict)
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(blender_file))
+        # bpy.ops.import_scene.obj(filepath=obj_file, axis_forward='Y', axis_up='Z')
+        # obj = bpy.context.selected_objects[0] # returns an array of objects in the scene
+        #
+        # ############################################################################
+        # #                SPLIT TO SEMANTIC OBJECTS                                 #
+        # ############################################################################
+        # bl.bridgeObject2componentObjects(obj, classes_dict)
+        # bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(blender_file))
 
 
 if __name__ == "__main__":

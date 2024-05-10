@@ -1,150 +1,33 @@
 import os
 import re
 import sys
-import pdb
 import cv2
 import glob
 import copy
+import warnings
 import numpy as np
 import pandas as pd
 from natsort import natsorted
 
-from .decorators import timer
+from .decorators import timer, forall
 
 
-@timer
-def organize_sample_paths(image_paths, mask_paths, labels=None, savefile=None):
+@forall
+def adjust_img_range(image, img_range: tuple=(0,1)) -> list:
     """
-    This function, given a list of image and mask paths, creates a pandas dataframe
-    that contains a column for the image paths, and one column per
-    label. Each row corresponds to a sample, and holds the paths for this sample's
-    image and masks.
-    Before loading the data a check is performed, and only the data for which
-    both an image and at least one label is available are included in the dataframe.
-    This is checked based on the ids that are implied in the file naming (image_<id>).
-    If more than one data samples with the same ids exist, this sample is not included
+    this function makes sure that the pixel values of the images
+    lie in the appropriate range
+    NOTE: for the moment only works for the (0,1) and (0, 255) cases,
+            not for arbitrary ranges
     """
-    # infer labels
-    if labels is None:
-        labels = list(set([os.path.normpath(x).split(os.sep)[-2] for x in mask_paths]))
-        labels = natsorted(labels)
-    # infer sample id from the image name
-    ids = [os.path.splitext(os.path.basename(x))[0] for x in image_paths]
-    ids = [id.replace('image_', '') for id in ids]
-    paths = {key: list() for key in ['image']+labels}
-    for i, id in enumerate(ids):
-        img_paths = [p for p in image_paths if re.search(f'\{os.sep}(image_)?{id}\.\w{{2,5}}$', p)]
-        if len(img_paths)!=1:
-            # ignore sample if more than one samples with the same id exist
-            continue
-        else:
-            paths['image'].append(img_paths[0])
-        for label in labels:
-            # find mask paths that correspond to the current id
-            pattern = f'\{os.sep}{label}\{os.sep}(mask_)?{id}\.\w{{2,5}}$'
-            corr_masks = [p for p in mask_paths if re.search(pattern, p)]
-            if len(set(corr_masks))==1:
-                paths[label].append(corr_masks[0])
-            else:
-                paths[label].append(None)
-    df = pd.DataFrame.from_dict(paths)
-    # delete rows with no labels if they exist
-    df.dropna(axis=0, how='all', subset=labels, inplace=True)
-
-    if savefile is not None:
-        df.to_csv(savefile)
-
-    return df
-
-
-def data_loader(image_paths, mask_paths, labels=None, width=640, height=480):
-    """
-    This function, given a list of image and mask paths, returns the images and
-    masks in the form of numpy arrays.
-    INPUTS:
-    @image_paths: a list of image paths
-    @mask_paths: a dictionary, with items {label: [list of mask_paths]} for all the
-                labels
-    @labels: an ordered list of label descriptions. Has to be a subset of the mask
-            keys()
-    @width: integer, desired width of images in pixels
-    @height: integer, desired height of images in pixels
-    """
-    if labels is None:
-        labels = list(mask_paths.keys())
-    if 'background' not in labels:
-        labels = ['background'] + labels
-    #load all images
-    images = np.asarray([cv2.resize(cv2.cvtColor(cv2.imread(p), cv2.COLOR_BGR2RGB), (width, height))
-                        for p in image_paths])
-    # add an extra mask at the beginning for the background class
-    masks = np.zeros((images.shape[:-1] + (len(labels),))) # , dtype=int
-    for l, label in enumerate(labels[1:]):
-        try:
-            masks[..., l+1] = np.asarray([cv2.resize(cv2.imread(p, cv2.IMREAD_GRAYSCALE)/255,
-                                    (width, height)) for p in mask_paths[label]])
-        except:
-            # if a mask file does not exist or cannot be loaded, the mask is left
-            # black for the moment
-            continue
-    # only keep data with no black images
-    no_black = [i for i in range(len(images)) if np.sum(images[i,...]!=0)]
-    images = images[no_black, ...]
-    masks = masks[no_black, ...]
-
-    # assign background class to pixels without class
-    tmp = np.sum(masks[..., 1:], axis=-1)==0
-    masks[..., 0] = tmp.astype(float)
-    del tmp
-
-    return images, masks
-
-
-def sort_and_load_data(image_paths, mask_paths, labels=None, width=640, height=480):
-    """
-    This function, given a list of image and mask paths, returns the images and
-    masks in the form of numpy arrays.
-    Before loading the data a check is performed, and only the data for which
-    both an image and at least one possible label are available are loaded.
-    This is checked based on the ids that are implied in the file naming (image_<id>).
-    If more than one data samples with the same ids exist, the sample is ignored.
-    """
-    df = organize_sample_paths(image_paths, mask_paths, labels=labels)
-    image_paths = list(df.image) #ordered image paths
-    mask_paths = {key: list(df[key]) for key in df.columns[1:]}# dictionary with ordered mask paths
-    imgs, masks = data_loader(image_paths, mask_paths, labels=labels, width=width, height=height)
-
-    return imgs, masks
-
-
-def data_generator(image_paths: list, mask_paths: list, labels: list=None,
-                    width: int=640, height: int=480, bs: int=8):
-    """
-    INPUTS:
-    @image_paths: a list of image paths
-    @mask_paths: a dictionary, with items {label: [list of mask_paths]} for all the
-                labels
-    @labels: an ordered list of label descriptions. Has to be a subset of the mask
-            keys()
-    @width: integer, desired width of images in pixels
-    @height: integer, desired height of images in pixels
-    """
-    # make sure the batch size is not too large to prevent any iteration
-    bs = len(image_paths) if bs>len(image_paths) else bs
-    indices = np.array(range(len(image_paths)))
-    image_paths = np.asarray(image_paths)
-    mask_paths = {key: np.asarray(val) for key, val in mask_paths.items()}
-    while True:
-        if len(indices)<bs:
-            indices = np.array(range(len(image_paths)))
-        batch_indices = np.random.choice(indices, size=bs, replace=False)
-        indices = np.setdiff1d(indices, batch_indices)
-        b_img_paths = image_paths[batch_indices]
-        b_mask_paths = {key: mask_paths[key][batch_indices] for key in mask_paths.keys()}
-
-        x,y = data_loader(b_img_paths, b_mask_paths, labels=labels,
-                            width=width, height=height)
-        yield x,y
+    if img_range==(0,1):
+        return image/(np.max(image)+1e-5)
+    elif img_range==(0,255):
+        return (image/(np.max(image)+1e-5)*255).astype(int)
+    else:
+        warnings.warn(f'\n##-----## \nWarning: Image range {img_range} '\
+                        'not recognised, image is returned as such.\n##-----##')
+        return image
 
 
 def unique_bridges(image_paths: list) -> list:
@@ -162,7 +45,9 @@ def unique_bridges(image_paths: list) -> list:
     return bridges_ids
 
 
-def clean_dataset(image_paths, mask_paths, coverage=0):
+def clean_dataset(image_paths: list,
+                mask_paths: list,
+                coverage=0):
     """
     deletes the images and masks for which the labels take less than img_coverage
     of the entire image
@@ -193,25 +78,6 @@ def clean_dataset(image_paths, mask_paths, coverage=0):
 
     print(f'{cnt_corrupted} corrupted images were found (more than 20% black)')
     return discard_images
-
-
-@timer
-def min_image_size(image_paths: list) -> tuple:
-    """
-    this functions finds the smaller width and height among a set of
-    images
-    """
-    widths, heights = [], []
-    for p in image_paths:
-        im = cv2.imread(p)
-        try:
-            widths.append(im.shape[1])
-            heights.append(im.shape[0])
-        except:
-            print(p)
-            pdb.set_trace()
-
-    return min(widths), min(heights)
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

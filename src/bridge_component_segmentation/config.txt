@@ -1,8 +1,0 @@
--dp
-../../../../data/real_MIRAUAR
--arch
-Unet
--dtprc
-1
--ne
-1

@@ -1,0 +1,6 @@
+-dp
+../../../../data/real_MIRAUAR_en
+-arch
+Unet
+-ne
+100

@@ -8,6 +8,7 @@ import shutil
 import flatdict
 import numpy as np
 import pandas as pd
+from pathlib import Path
 from natsort import natsorted
 
 from .decorators import forall, verify_format

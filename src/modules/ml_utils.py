@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-import pdb
 import cv2
 import math
 import shutil
@@ -11,6 +10,7 @@ import warnings
 import numpy as np
 from tqdm import tqdm
 from scipy import stats
+from pathlib import Path
 # import numpy.typing as npt
 import matplotlib.pyplot as plt
 import segmentation_models as sm
@@ -18,6 +18,7 @@ from sklearn.metrics import confusion_matrix, f1_score
 
 from . import utils
 from .decorators import optional, timer
+from .constants import LABELS_PIPO
 from . import visualization as vis
 from . import metric_utils as metrics
 from . import multiclass_losses as multiloss
@@ -34,32 +35,9 @@ sm_backbones = ['vgg16', 'vgg19',
                 'inceptionv3', 'inceptionresnetv2',
                 'mobilenet', 'mobilenetv2',
                 'efficientnetb0', 'efficientnetb1', 'efficientnetb2', 'efficientnetb3',
-                'efficientnetb4', 'efficientnetb5', 'efficientnetb6', 'efficientnetb7']
+                'efficientnetb4', 'efficientnetb5', 'efficientnetb6', 'efficientnetb7'
+                ]
 
-
-classes = {'background':0,
-                'piedroit':1,
-                'traverse':2,
-                'mur':3,
-                'gousset':4,
-                'corniche':5}
-
-class_weights = {'background':0.05*6,
-                'piedroit':0.2*6,
-                'traverse':0.2*6,
-                'corniche':0.5*6,
-                'gousset':0.2*6,
-                'mur':0.2*6}
-
-# class_weights_int = {classes[key]: class_weights[key] for key in classes.keys()}
-
-# degenerate class weights to see why it does not learn the corniche
-# class_weights = {'background':0.0,
-#                 'piedroit':0.0,
-#                 'traverse':0.0,
-#                 'corniche':6.0,
-#                 'gousset':0.0,
-#                 'mur':0.0}
 
 @optional
 def select_GPU():
@@ -126,79 +104,34 @@ def get_loss(loss_name: str, class_weights=None):
         sys.exit(f'loss {loss_name} not defined')
 
 
-def get_network(arch: str, backbone: str=None, input_shape: tuple=(None, None, 3),
-                pretrained: bool=False, nClasses:int =2, opt: str='Adam',
-                loss: str='cce', class_weights=None, **kwargs):
+def get_network(architecture: str,
+                backbone: str=None,
+                input_shape: tuple=(None, None, 3),
+                pretrained: bool=False,
+                n_classes:int=2,
+                optimizer: str='Adam',
+                loss: str='cce',
+                class_weights=None,
+                **kwargs):
     """
     This function returns a network object defined by network
     INPUTS:
-    @arch	: a string indicating what network architecture will be used
+    @architecture	: a string indicating what network architecture will be used
     @backbone   : a string indicating the backbone (relevant for segmentation_models
                     package)
     @input_shape: in the case that a CNN model will be trained, the input shape
     			  (it is necessary to build the model)
-    @nClasses   : the number of output classes
+    @n_classes   : the number of output classes
     @class_weights: array, class weights
     OUTPUT
     @classifier : a classifier object
     """
     loss = get_loss(loss, class_weights)
-    if opt == 'SGD':
-        opt = SGD(lr=lera, decay=1e-6, momentum=0.9, nesterov=True)
+    if optimizer == 'SGD':
+        optimizer = SGD(lr=lera, decay=1e-6, momentum=0.9, nesterov=True)
     encoder_weights='imagenet' if pretrained else None
 
-    if arch == 'Unet_autoencoder':
-        # unet network, https://github.com/jocicmarko/ultrasound-nerve-segmentation
-        inputs = Input(input_shape, name='input')
-        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
-        conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv1)
-        pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
-
-        conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
-        conv2 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv2)
-        pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
-
-        conv3 = Conv2D(128, (3, 3), activation='relu', padding='same')(pool2)
-        conv3 = Conv2D(128, (3, 3), activation='relu', padding='same')(conv3)
-        pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
-
-        conv4 = Conv2D(256, (3, 3), activation='relu', padding='same')(pool3)
-        conv4 = Conv2D(256, (3, 3), activation='relu', padding='same')(conv4)
-        pool4 = MaxPooling2D(pool_size=(2, 2))(conv4)
-
-        conv5 = Conv2D(512, (3, 3), activation='relu', padding='same')(pool4)
-        encoded = Conv2D(512, (3, 3), activation='relu', padding='same', name='encoded')(conv5)
-
-        # up6 = concatenate([Conv2DTranspose(256, (2, 2), strides=(2, 2), padding='same')(encoded), conv4], axis=3)
-        up6 = Conv2DTranspose(256, (2, 2), strides=(2, 2), padding='same')(encoded)
-        conv6 = Conv2D(256, (3, 3), activation='relu', padding='same')(up6)
-        conv6 = Conv2D(256, (3, 3), activation='relu', padding='same')(conv6)
-
-        # up7 = concatenate([Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(conv6), conv3], axis=3)
-        up7 = Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(conv6)
-        conv7 = Conv2D(128, (3, 3), activation='relu', padding='same')(up7)
-        conv7 = Conv2D(128, (3, 3), activation='relu', padding='same')(conv7)
-
-        # up8 = concatenate([Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(conv7), conv2], axis=3)
-        up8 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(conv7)
-        conv8 = Conv2D(64, (3, 3), activation='relu', padding='same')(up8)
-        conv8 = Conv2D(64, (3, 3), activation='relu', padding='same')(conv8)
-
-        # up9 = concatenate([Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(conv8), conv1], axis=3)
-        up9 = Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(conv8)
-        conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(up9)
-        conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv9)
-
-        conv10 = Conv2D(input_shape[-1], (1, 1), activation='sigmoid', name='reconstructed')(conv9)
-
-        autoencoder = Model(inputs=[inputs], outputs=[conv10], name=arch)
-
-        # model.compile(optimizer=sgd, loss='mean_squared_error', metrics=['mean_squared_error'])
-        autoencoder.compile(optimizer=opt, loss=loss, metrics=['mae'])
-        # model.compile(optimizer='adadelta', loss='mean_squared_error', metrics=['mean_squared_error'])
-        return autoencoder
-
-    elif arch == 'Unet' and backbone is None:
+    if architecture == 'Unet' and backbone is None:
         # unet network, https://github.com/jocicmarko/ultrasound-nerve-segmentation
         inputs = Input(input_shape, name='input')
         conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
@@ -236,15 +169,15 @@ def get_network(arch: str, backbone: str=None, input_shape: tuple=(None, None, 3
         conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(up9)
         conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv9)
 
-        conv10 = Conv2D(nClasses, (1, 1), activation='sigmoid', name='mask')(conv9)
+        conv10 = Conv2D(n_classes, (1, 1), activation='sigmoid', name='mask')(conv9)
 
         model = Model(inputs=[inputs], outputs=[conv10], name=arch)
 
-    elif arch == 'Unet' and backbone is not None:
+    elif architecture == 'Unet':
         model = sm.Unet(backbone_name=backbone, input_shape=input_shape,
-                        classes=nClasses, encoder_weights=encoder_weights)
+                        classes=n_classes, encoder_weights=encoder_weights)
 
-    elif arch == 'Unet_reduced':
+    elif architecture == 'Unet_reduced':
         # unet network, https://github.com/jocicmarko/ultrasound-nerve-segmentation
         inputs = Input(input_shape, name='input')
         conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
@@ -275,96 +208,115 @@ def get_network(arch: str, backbone: str=None, input_shape: tuple=(None, None, 3
         conv7 = Conv2D(32, (3, 3), activation='relu', padding='same')(up7)
         conv7 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv7)
 
-        conv8 = Conv2D(nClasses, (1, 1), activation='sigmoid', name='reconstructed')(conv7)
+        conv8 = Conv2D(n_classes, (1, 1), activation='sigmoid', name='reconstructed')(conv7)
 
         model = Model(inputs=[inputs], outputs=[conv8], name=arch)
 
-    elif arch == 'ResNet':
-        input_img = Input(input_shape)
-        conv1 = Conv2D(3, (1, 1), activation='relu', padding='same')(input_img)
-        pretrained = tf.keras.applications.ResNet50(weights='imagenet', include_top=False)(conv1)  # imagenet
-        f = pretrained
-        x = Flatten()(f)
-        x = Dense(256)(x)   # 4096
-        x = LeakyReLU()(x)
-        x = Dropout(0.5)(x)
-        x = Dense(2)(x)
-        o = Activation('softmax')(x)
-
-        model = Model(input_img, o, name=arch)
-        model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
-        return model
-
-    elif arch=='Linknet':
+    elif architecture=='Linknet':
         # Linknet is a fully convolution neural network for fast image semantic segmentation
         # This implementation by default has 4 skip connections (original - 3).
         model = sm.Linknet(backbone_name=backbone, input_shape=input_shape,
-                        classes=nClasses, encoder_weights=encoder_weights)
+                        classes=n_classes, encoder_weights=encoder_weights)
 
-    elif arch=='FPN':
+    elif architecture=='FPN':
         # FPN is a fully convolution neural network for image semantic segmentation
         model = sm.FPN(backbone_name=backbone, input_shape=input_shape,
-                        classes=nClasses, encoder_weights=encoder_weights)
+                        classes=n_classes, encoder_weights=encoder_weights)
 
-    elif arch=='PSPNet':
+    elif architecture=='PSPNet':
         # PSPNet is a fully convolution neural network for image semantic segmentation
         # shape cannot be none! should be divisible by 6 * downsample_factor
         if any([x is None for x in input_shape]):
-            model = sm.PSPNet(backbone_name=backbone,classes=nClasses,
+            model = sm.PSPNet(backbone_name=backbone,classes=n_classes,
                             encoder_weights=encoder_weights)
         else:
             model = sm.PSPNet(backbone_name=backbone, input_shape=input_shape,
-                            classes=nClasses, encoder_weights=encoder_weights)
+                            classes=n_classes, encoder_weights=encoder_weights)
 
     else:
-        sys.exit(f'{arch} type of network architecture not defined')
+        sys.exit(f'{architecture} type of network architecture not defined')
 
-    name = f'{arch}'
+    name = f'{architecture}'
     if backbone is not None:
         name += f'_{backbone}'
     if pretrained:
         name += '_pr'
     model._name = name
-    model.compile(optimizer=opt, loss=loss,
+    model.compile(optimizer=optimizer, loss=loss,
                 metrics=get_segmentation_metrics() +
                 [tf.keras.metrics.MeanIoU(num_classes=model.output.shape[-1])])
     return model
 
 
-def load_model_extended(modelpath, loss=None, class_weights=None, **kwargs):
+def load_model_extended(model_path: str,
+                        loss: str=None,
+                        class_weights: dict=None,
+                        **kwargs):
     """
     this function loads a model taking into account that potentially a custom loss
     function is used
     """
     tf_losses = [x[0] for x in inspect.getmembers(tf.losses)]
     if loss in tf_losses:
-        return tf.keras.models.load_model(modelpath)
+        return tf.keras.models.load_model(model_path)
 
     # dummy load in order to get the number of classes
     # if class_weights is None:
     #     model = tf.keras.models.load_model(modelpath, compile=False)
-    #     nClasses = model.output.shape[-1]
-    #     class_weights = np.ones(nClasses).astype(np.float32)
+    #     n_classes = model.output.shape[-1]
+    #     class_weights = np.ones(n_classes).astype(np.float32)
 
     custom = {'loss': get_loss(loss, class_weights)}
-    return tf.keras.models.load_model(modelpath, custom_objects=custom)
+    return tf.keras.models.load_model(model_path, custom_objects=custom)
 
 
-def model_stats(model: tf.keras.Model, savefile: str=None):
+def get_model(finetune: bool=False,
+                model_path: str=None,
+                trainable: str='all',
+                **kwargs) -> tf.keras.Model:
+    """
+    this function returns the tensorflow model instance to be trained
+    INPUTS:
+    finetune: boolean, if set implies finetuning. Mp should be not none
+    model_path: string, model path of model to load. Only relevant to finetuning,
+        should be a pretrained model
+    trainable: number of layers to train. Only relevant if finetuning
+    **kwargs: arguments to be passed to get_network
+    """
+    if finetune and model_path is not None:
+        suffix = f'{trainable}_layers'
+        # load model
+        model = load_model_extended(model_path, **kwargs)
+        if trainable!='all' and trainable<=len(model.layers):
+            for layer in model.layers[:len(model.layers)-trainable]:
+                layer.trainable=False
+        # it is important to recompile, otherwise the updates on the
+        # trainable layers will not be incorporated
+        metrics = [x for x in model.metrics if x.name!='loss']
+        model._name += f'_finetuned_{suffix}'
+        model.compile(optimizer=model.optimizer, loss=model.loss, metrics=metrics)
+    else:
+        model = get_network(**kwargs)
+
+    return model
+
+
+def model_stats(model: tf.keras.Model,
+                info_path: str=None):
     """
     this function calculates and prints some info on the model.
     If a savefile is provided, that info is written there
     """
     model.summary()
-    trainableParams = np.sum([np.prod(v.get_shape()) for v in model.trainable_weights])
-    nonTrainableParams = np.sum([np.prod(v.get_shape()) for v in model.non_trainable_weights])
-    totalParams = trainableParams + nonTrainableParams
-    if savefile is not None:
-        with open(savefile, 'a') as f:
-            f.write(f'#trainable parameters: {trainableParams} \n')
-            f.write(f'#non trainable parameters: {nonTrainableParams} \n')
-            f.write(f'#parameters: {totalParams} \n\n')
-    return trainableParams, nonTrainableParams
+    trainable_params = np.sum([np.prod(v.get_shape()) for v in model.trainable_weights])
+    non_trainable_params = np.sum([np.prod(v.get_shape()) for v in model.non_trainable_weights])
+    total_params = trainable_params + non_trainable_params
+    if info_path is not None:
+        with open(info_path, 'a') as f:
+            f.write(f'#trainable parameters: {trainable_params} \n')
+            f.write(f'#non trainable parameters: {non_trainable_params} \n')
+            f.write(f'#parameters: {total_params} \n\n')
+    # return trainable_params, non_trainable_params
 
 
 class EvaluateCallback(tensorflow.keras.callbacks.Callback):
@@ -417,26 +369,27 @@ class EvaluateCallback(tensorflow.keras.callbacks.Callback):
         self.n_epoch += 1
 
 
-def train(model: tf.keras.Model, data_train, data_val=None, nBatches_per_epoch: int=100,
-            nBatches_val: int=20, bs: int=8, nEpochs: int=100, savedir: str='.',
+def train_model(model: tf.keras.Model,
+            data_train: tf.keras.utils.Sequence,
+            data_val: tf.keras.utils.Sequence=None,
+            n_epochs: int=100,
+            save_path: str='.',
             fold: int=None):
     """
     trains the network. Training and validation data and groundtruths
     are needed.
     INPUTS:
     @model: a tf keras model
-    @data_train: a generator object infinitely producing (x,y) tuples of some batch size
-    @data_val: a tuple (x,y), containing numpy arrays
-    @nBatches_per_epoch: after how many batches an epoch is considered
-                        finished. Typically #train_samples/batch_size
-    @nBatches_val: number of validation batches to evaluate after each epoch
-    @bs: integer, batch size (for validation, if validation is not a generator)
-    @nEpochs: integer, number of epochs
-    @savedir: directory path to save the procuded model
+    @data_train: a tf.keras.utils.Sequence object producing (x,y) tuples of some batch size
+    @data_val: a tf.keras.utils.Sequence object producing (x,y) tuples of some batch size
+    @n_epochs: integer, number of epochs
+    @save_path: directory path to save the procuded model
     @fold: fold number, if cross-validation scheme is used
     OUTPUTS:
     @hist: history object
     """
+    model_stats(model, Path(save_path).joinpath('info.config'))
+
     # CALLBACKS
     callbck = []
     # fit arguments
@@ -444,35 +397,32 @@ def train(model: tf.keras.Model, data_train, data_val=None, nBatches_per_epoch: 
     fit_args['x'] = data_train
     fit_args['validation_data'] = data_val
     fit_args['verbose'] = 1
-    fit_args['epochs'] = nEpochs
-    if inspect.isgenerator(data_train):
-        fit_args['steps_per_epoch'] = nBatches_per_epoch
-    else:
-        fit_args['batch_size'] = bs
+    fit_args['epochs'] = n_epochs
     # save intermediate training steps (every 25 batches)
-    result_dir = savedir.replace(f'{os.sep}models{os.sep}', f'{os.sep}results{os.sep}')
-    inter_dir = os.path.join(result_dir, 'intermediate_results')
-    if inspect.isgenerator(data_val):
-        inter_sample = next(data_val)
-        inter_sample = (inter_sample[0][0], inter_sample[1][0])
-        fit_args['validation_steps'] = nBatches_val
-    else:
-        i = np.random.choice(range(data_val[0].shape[0]))
-        inter_sample = (data_val[0][i], data_val[1][i])
-        fit_args['validation_batch_size'] = bs
-    inter = EvaluateCallback(inter_sample[0], inter_sample[1], out_path = inter_dir, colors=vis.class_colors)
+    result_save_path = save_path.replace(f'{os.sep}models{os.sep}', f'{os.sep}results{os.sep}')
+    inter_path = os.path.join(result_save_path, 'intermediate_results')
+    inter_sample = data_val.sample_loader(0)
+    inter = EvaluateCallback(inter_sample[0],
+                            inter_sample[1],
+                            out_path = inter_path,
+                            colors=vis.class_colors)
     callbck.append(inter)
     #
     base_folder = f'{model.name}_best_val_perf' if fold is None else f'{model.name}_best_val_perf_fold_{fold}'
-    filepath = os.path.join(savedir, base_folder) # If i have cross validation I can add the fold
-    model_checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True)
+    file_path = os.path.join(save_path, base_folder) # If i have cross validation I can add the fold
+    model_checkpoint = ModelCheckpoint(file_path,
+                                        monitor='val_loss',
+                                        verbose=1,
+                                        save_best_only=True)
     callbck.append(model_checkpoint)
     #
     patience = 60 if 'finetuned' in model.name else 40
-    early_stopping = EarlyStopping(patience=patience, restore_best_weights=False) # start_from_epoch=20
+    early_stopping = EarlyStopping(patience=patience,
+                                restore_best_weights=False) # start_from_epoch=20
     callbck.append(early_stopping)
     #
-    match = re.search(f'(^\{os.sep}?([\w.]+\{os.sep})+(results))\{os.sep}(.+)$', result_dir)
+    match = re.search(f'(^\{os.sep}?([\w.]+\{os.sep})+(results))\{os.sep}(.+)$',
+                    result_save_path)
     log_dir = os.path.join(match.group(1), 'logs', match.group(4))
     if os.path.isdir(log_dir):
         shutil.rmtree(log_dir, ignore_errors=True) # clean directory if exists
@@ -480,113 +430,111 @@ def train(model: tf.keras.Model, data_train, data_val=None, nBatches_per_epoch: 
     callbck.append(tensorboard)
     # callbck.append(TqdmCallback(verbose=2))
     fit_args['callbacks'] = callbck
-
     hist = model.fit(**fit_args)
 
     # also save after last epoch
     save_name = f'{model.name}_final' if fold is None else f'{model.name}_final_fold_{fold}'
-    model.save(os.path.join(savedir, save_name))
-    np.save(os.path.join(result_dir, 'training_history.npy'), hist.history)
+    model.save(os.path.join(save_path, save_name))
+    np.save(os.path.join(result_save_path, 'training_history.npy'), hist.history)
+
+    vis.plot_training_history(hist.history,
+                        Path(result_save_path).joinpath('loss.png'))
 
     return hist
 
 
 @timer
-def test(model: tf.keras.Model, data_test: tuple, savedir: str='.', model_id: str='',
-        labels: list=None, batch_size: int=8, data_path: str=''):
+def test_model(model: tf.keras.Model,
+        data: tf.keras.utils.Sequence,
+        save_path: str='.',
+        model_id: str=''):
     """
     tests a model on a test set
     INPUTS
     @model: tf keras model
-    @data_test: tuple (x,y), containing inputs and optionally outputs
+    @data: a tf.keras.utils.Sequence object producing (x,y) tuples of some batch size
     @model_id: string, specificator for the model (eg final, best_val, etc)
-    @labels: ordered list of string descriptions for each label, background should be included
-    @batch_size: integer, batch size
-    data_path : str, test data path to be used as info in the csv file
     """
-    labels = list(range(data_test[1].shape[-1])) if labels is None else labels
-    savedir = os.path.join(savedir, model_id)
-    os.makedirs(savedir, exist_ok=True)
+    save_path = os.path.join(save_path, model_id)
+    os.makedirs(save_path, exist_ok=True)
     # keep track on which dataset the model is being tested
-    data_id = os.path.normpath(data_path).split(os.sep)[-1]
-    data_id = os.path.normpath(data_path).split(os.sep)[-2] if data_id=='test' else data_id
+    data_id = os.path.normpath(data.root_path).split(os.sep)[-1]
+    data_id = os.path.normpath(data.root_path).split(os.sep)[-2] if data_id=='test' else data_id
 
-    match = re.search(f'(^\{os.sep}?([\w.]+\{os.sep})+)((s|r)?v\d{{4}})', savedir)
-    # excel_path = os.path.join(match.group(1), 'result_overview.xlsx')
+    match = re.search(f'(^\{os.sep}?([\w.]+\{os.sep})+)((s|r)?v\d{{4}})', save_path)
     csv_path = os.path.join(match.group(1), 'result_overview.csv')
 
-    test_overview = {'model': f'{match.group(3)}_{model_id}', 'tested_on': data_path}
+    test_overview = {'model': f'{match.group(3)}_{model_id}', 'tested_on': data.root_path}
 
-    if data_test[1] is not None:
-        test_results = model.evaluate(data_test[0], data_test[1], batch_size=batch_size)
+    # test_results = model.evaluate(data)
         # # TODO: there is an issue with the tf metrics, at least for version tf 2.4,
         # # they are not reliable and consistent with the confusion matrix, So I prefer
         # # to calculate them by hand (I think it has to do with the way they
         # # handle the per batch results)
         # test_overview.update({name: test_results[i] for i, name in enumerate(model.metrics_names)
         #                 if name!='loss'})
-        y_cat = np.argmax(np.squeeze(data_test[1]), axis=-1)
-    else:
-        y_cat = None
+    # !!!
+    images = np.asarray([data.sample_loader(i)[0] for i in range(data.n_samples)])
+    y_binary = np.asarray([data.sample_loader(i)[1] for i in range(data.n_samples)])
+    y_cat = np.argmax(np.squeeze(y_binary), axis=-1)
+    del y_binary
 
     # predict on test data
     # the concatenation of the batch predicted outputs happens in the GPU, which
     # causes an OOM (out of memory) error. This is why we predict on batches and
     # manually concatenate
     try:
-        # predict on batches an concatenate manually
+        # predict on batches and concatenate manually
         pred = list()
-        nBatches = math.ceil(len(data_test[0])/batch_size)
-        for i in tqdm(range(nBatches), 'Predicting on test set:'):
-            start = i*batch_size
-            end = min(i*batch_size+batch_size, len(data_test[0]))
-            pred.extend(model.predict_on_batch(data_test[0][start:end]))
+        for i in tqdm(range(math.ceil(data.n_samples/data.batch_size)),
+                        'Predicting on test set:'):
+            start = i*data.batch_size
+            end = min(i*data.batch_size+data.batch_size, data.n_samples)
+            print(f'{start}, {end}')
+            pred.extend(model.predict_on_batch(images[start:end]))
         pred=np.asarray(pred)
     except:
         # if this fails, predict on CPU
         warnings.warn('Predicting on CPU - This process is expected to be slow \n')
         with tf.device("cpu:0"):
-            pred = model.predict(data_test[0], batch_size=batch_size)
+            pred = model.predict(images, batch_size=data.batch_size)
     # get class id from categorical data
     pred_cat = np.argmax(np.squeeze(pred), axis=-1)
 
     #confusion matrix
-    if data_test[1] is not None:
-        conf_matr = confusion_matrix(y_true=y_cat.flatten(),
-                    y_pred=pred_cat.flatten(),
-                    labels=list(range(data_test[1].shape[-1])))
-        # test = tf.math.confusion_matrix(y_cat.flatten(), pred_cat.flatten())
-        savepath = os.path.join(savedir, f'{data_id}_confusion_matrix_{model_id}.pdf')
-        vis.plot_confusion_matrix(conf_matr, labels, savepath)
-        for norm in ['true', 'pred', 'all']:
-            conf_matr = confusion_matrix(y_true=y_cat.flatten(),
-                        y_pred=pred_cat.flatten(),
-                        labels=list(range(data_test[1].shape[-1])), normalize=norm)
-            savepath = os.path.join(savedir, f'{data_id}_confusion_matrix_{model_id}_normalized_{norm}.pdf')
-            vis.plot_confusion_matrix(conf_matr, labels, savepath)
-        # METRICS
-        # new_shape = (np.prod(data_test[1].shape[0:-1]), data_test[1].shape[-1])
-        # indicator_y = np.reshape(data_test[1], new_shape)
-        # indicator_pred = np.reshape(pred, new_shape)
-        # test_overview['F1score'] = f1_score(indicator_y, indicator_pred, average='macro')
-        # test = f1_score(indicator_y, indicator_pred)
-        f1_per_class = metrics.fscore_from_cm(conf_matr)
-        for i, label in enumerate(labels):
-            test_overview[f'{label}_F1score'] = f1_per_class[i]
-        test_overview['precision_macro'] =metrics.precision_from_cm(conf_matr, mean=True)
-        test_overview['recall_macro'] = metrics.recall_from_cm(conf_matr, mean=True)
-        test_overview['F1score_macro'] = np.mean(f1_per_class)
-        test_overview['mean_IoU'] = metrics.IoU_from_cm(conf_matr, mean=True)
+    conf_matr = confusion_matrix(y_true=y_cat.flatten(),
+                y_pred=pred_cat.flatten(),
+                labels=list(range(len(LABELS_PIPO))))
 
-        print(f'{"#"*10}{model_id}{"#"*10}')
-        for metric, value in  test_overview.items():
-            print(f'{metric} : {value}')
-        print(f'{"#"*30}')
+    # test = tf.math.confusion_matrix(y_cat.flatten(), pred_cat.flatten())
+    save_file = os.path.join(save_path, f'{data_id}_confusion_matrix_{model_id}.pdf')
+    vis.plot_confusion_matrix(conf_matr, LABELS_PIPO, save_file)
+    for norm in ['true', 'pred', 'all']:
+        conf_matr = confusion_matrix(y_true=y_cat.flatten(),
+                                    y_pred=pred_cat.flatten(),
+                                    labels=list(range(len(LABELS_PIPO))),
+                                    normalize=norm)
+        save_file = os.path.join(save_path, f'{data_id}_confusion_matrix_{model_id}_normalized_{norm}.pdf')
+        vis.plot_confusion_matrix(conf_matr, LABELS_PIPO, save_file)
+    # METRICS
+    f1_per_class = metrics.fscore_from_cm(conf_matr)
+    for i, label in enumerate(LABELS_PIPO):
+        test_overview[f'{label}_F1score'] = f1_per_class[i]
+    test_overview['precision_macro'] =metrics.precision_from_cm(conf_matr, mean=True)
+    test_overview['recall_macro'] = metrics.recall_from_cm(conf_matr, mean=True)
+    test_overview['F1score_macro'] = np.mean(f1_per_class)
+    test_overview['mean_IoU'] = metrics.IoU_from_cm(conf_matr, mean=True)
+
+    print(f'{"#"*10}{model_id}{"#"*10}')
+    for metric, value in  test_overview.items():
+        print(f'{metric} : {value}')
+    print(f'{"#"*30}')
 
     # save result summary in csv file
     utils.dict2csv(test_overview, csv_path)
     # save test images with groundtruth and prediction for inspections
-    test_images_path = os.path.join(savedir, f'{data_id}_test_images_results_{model_id}')
+    test_images_path = os.path.join(save_path, f'{data_id}_test_images_results_{model_id}')
     os.makedirs(test_images_path, exist_ok=True)
-    vis.inspect_predictions(*[(data_test[0][i], y_cat[i], pred_cat[i]) for i in range(len(data_test[0]))],
-                            labels=labels, savefolder=test_images_path)
+    vis.inspect_predictions(*[(images[i], y_cat[i], pred_cat[i]) for i in range(data.n_samples)],
+                            labels=LABELS_PIPO,
+                            savefolder=test_images_path)

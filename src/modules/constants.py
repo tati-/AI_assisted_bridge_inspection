@@ -8,6 +8,9 @@ import sys
 #                 'gousset':4,
 #                 'corniche':5}
 
+WIDTH = 640
+HEIGHT = 480
+
 CLASSES_PIPO = {'background':0,
                 'abutment':1,
                 'deck':2,
@@ -26,7 +29,7 @@ LABELS_PIPO = ['background', 'abutment', 'deck', 'wing_wall', 'haunch', 'edge_be
 #                 'gousset':0.2*6,
 #                 'mur':0.2*6}
 
-class_weights_pipo = {'background':0.05*6,
+CLASS_WEIGHTS = {'background':0.05*6,
                 'abutment':0.2*6,
                 'deck':0.2*6,
                 'edge_beam':0.5*6,
