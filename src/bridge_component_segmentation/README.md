@@ -44,8 +44,8 @@ flowchart TD
 ## Usage
 
 The code is divided in a number of modules.
-1. `semantic_segm_pipeline.py` is the most loaded script of all. It trains and then tests a model, on either real or synthetic data. If a model is given as argument, along with the flaf `--finetune`, the existing model is finetuned. Many of the model specifications and the dataset to train on are given as arguments to the script.
-2. `test_pipeline.py`. Takes as argument a model and a data directory (assuming [this](#data_struct) structure), and tests the model. This functionality is included by default in point 1., but exists also seperately to allow for more tests.
+1. `train.py` is the most loaded script of all. It trains a model, on either real or synthetic data. If a model is given as argument, along with the flag `--finetune`, the existing model is finetuned. Many of the model specifications and the dataset to train on are given as arguments to the script.
+2. `test.py`. Takes as argument one or more models and a data directory (assuming [this](#data_struct) structure), and tests the model.
 3. `split dataset.py`. Given a datapath with [this](#data_struct) structure, transforms it in the training appropriate (creates `train`, `validation` and `test` folders, and distributes the data with a 60-20-20 training-validation-testing split ratio.)
 4. `tfKeras2onnx.py`. Takes a tensorflow keras model (SavedModel format), and transforms it into ONNX.
 5. `test_onnx.py`. Useful for debugging, takes as input an ONNX model and tests it with one or more test images.
@@ -62,6 +62,6 @@ Model in [SavedModel](https://www.tensorflow.org/guide/saved_model) or ONNX form
 
 ### Results
 - During training, a folder named `intermediate_results` is created, that saves the model output on a random validation image every some epochs.
-- A folder `test_images_results_xxx` is created with a figure for each test image, showing the prediction and the groundtruth.
+- During testing, a folder `test_images_results_xxx` is created with a figure for each test image, showing the prediction and the groundtruth.
 - An entry is added to a `.csv` file named `results_overview.csv` with several performance metrics, overall and per class.
 - The confusion matrix of the model is produced.
