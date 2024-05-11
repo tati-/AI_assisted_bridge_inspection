@@ -490,7 +490,6 @@ def test_model(model: tf.keras.Model,
                         'Predicting on test set:'):
             start = i*data.batch_size
             end = min(i*data.batch_size+data.batch_size, data.n_samples)
-            print(f'{start}, {end}')
             pred.extend(model.predict_on_batch(images[start:end]))
         pred=np.asarray(pred)
     except:

@@ -1,0 +1,11 @@
+-dp
+../../../../data/real_MIRAUAR_en/test
+-mp
+../../../../models/real_MIRAUAR_en/rv0009/Unet_mobilenetv2_pr_final
+../../../../models/real_MIRAUAR_en/rv0009/Unet_mobilenetv2_pr_best_val_perf
+../../../../models/real_MIRAUAR_en/rv0010/Unet_mobilenet_pr_final
+../../../../models/real_MIRAUAR_en/rv0010/Unet_mobilenet_pr_best_val_perf
+../../../../models/real_MIRAUAR_en/rv0011/Unet_resnet50_pr_final
+../../../../models/real_MIRAUAR_en/rv0011/Unet_resnet50_pr_best_val_perf
+../../../../models/real_MIRAUAR_en/rv0012/Unet_efficientnetb2_pr_final
+../../../../models/real_MIRAUAR_en/rv0012/Unet_efficientnetb2_pr_best_val_perf

@@ -1,6 +1,7 @@
 import os
 import re
 import cv2
+import math
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -80,9 +81,6 @@ class PFBridgeDataset(tf.keras.utils.Sequence):
                                                 datapath=root_path, recursive=True)
         img_paths = [x for x in files if f'{os.sep}images{os.sep}' in x]
         mask_paths = [x for x in files if f'{os.sep}masks{os.sep}' in x]
-        # self.labels = list(mask_paths.keys())
-        # if 'background' not in labels:
-        #     self.labels = ['background'] + self.labels
         self.data_info = organize_sample_paths(img_paths, mask_paths)
         self.n_samples = len(self.data_info)
         self.img_size = img_size
@@ -129,12 +127,13 @@ class PFBridgeDataset(tf.keras.utils.Sequence):
                         cv2.imread(sample_info.image), cv2.COLOR_BGR2RGB
                         ),
                     self.img_size)
-        if np.sum(image) == 0:
+        if math.isclose(np.sum(image), 0):
             # reject black images
             return None
-        else:
+        elif np.max(image)>2:
             # make sure image is in the 0-1 range
-            image = image/(np.max(image))
+            image = image/255.0
+            # image = image/(np.max(image))
         # load masks
         masks = np.zeros((image.shape[:-1] + (len(LABELS_PIPO),)))
         for l, label in enumerate(LABELS_PIPO[1:]):
@@ -149,8 +148,13 @@ class PFBridgeDataset(tf.keras.utils.Sequence):
                 # if a mask file does not exist or cannot be loaded, the mask is left
                 # black for the moment
                 continue
-        else:
-            return image, masks
+
+        # assign background class to pixels without other class
+        tmp = np.sum(masks[..., 1:], axis=-1)==0
+        masks[..., 0] = tmp.astype(float)
+        del tmp
+
+        return image, masks
 
 
     def __getitem__(self, batch_ind: int) -> tuple:
@@ -164,6 +168,9 @@ class PFBridgeDataset(tf.keras.utils.Sequence):
             if sample is not None:
                 images.append(sample[0])
                 masks.append(sample[1])
+        # if np.ptp(np.asarray(images))<0.1 or np.ptp(np.asarray(images))>1:
+        #     print('Strange Input image values')
+        #     breakpoint()
         return np.asarray(images), np.asarray(masks)
 
 
