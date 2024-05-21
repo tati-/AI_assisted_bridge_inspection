@@ -11,12 +11,12 @@ example usage: python ifc_builder.py -i ./json/parameters.json
 import os
 import re
 import sys
-import pdb
 import json
 import argparse
 import numpy as np
 from pathlib import Path
 
+sys.path.append('..')
 from classes.bridge import BridgeModel as Bridge
 
 
