@@ -1,0 +1,146 @@
+[
+  {
+    "index": 0,
+    "label": "traverse",
+    "nom": "traverse",
+    "couleur": 8421504,
+    "dimensions": {
+      "longueur": {
+        "d1": null,
+        "d2": null,
+        "dec": null,
+        "contrainte": -1,
+        "contraintedec": -1
+      },
+      "largeur": {
+        "d1": null,
+        "d2": null,
+        "dec": null,
+        "contrainte": -1,
+        "contraintedec": -1
+      },
+      "hauteur": {
+        "d1": null,
+        "d2": null,
+        "dec": null,
+        "contrainte": -1,
+        "contraintedec": -1
+      }
+    },
+    "angle": {
+      "heading": {
+        "v": null,
+        "contrainte": -1
+      },
+      "tilt": {
+        "v": null,
+        "contrainte": -1
+      },
+      "roll": {
+        "v": null,
+        "contrainte": -1
+      }
+    },
+    "contrainte": {
+      "element": -1,
+      "n1": -1,
+      "n2": -1
+    }
+  },
+  {
+    "index": 1,
+    "label": "piedroit",
+    "nom": "piedroit-e",
+    "couleur": 16776960,
+    "dimensions": {
+      "longueur": {
+        "d1": null,
+        "d2": null,
+        "dec": null,
+        "contrainte": -1,
+        "contraintedec": -1
+      },
+      "largeur": {
+        "d1": null,
+        "d2": null,
+        "dec": null,
+        "contrainte": 0,
+        "contraintedec": -1
+      },
+      "hauteur": {
+        "d1": null,
+        "d2": null,
+        "dec": null,
+        "contrainte": -1,
+        "contraintedec": -1
+      }
+    },
+    "angle": {
+      "heading": {
+        "v": null,
+        "contrainte": -1
+      },
+      "tilt": {
+        "v": null,
+        "contrainte": -1
+      },
+      "roll": {
+        "v": null,
+        "contrainte": 0
+      }
+    },
+    "contrainte": {
+      "element": 0,
+      "n1": 0,
+      "n2": 1
+    }
+  },
+  {
+    "index": 2,
+    "nom": "piedroit-w",
+    "label": "piedroit",
+    "couleur": 16776960,
+    "dimensions": {
+      "longueur": {
+        "d1": null,
+        "d2": null,
+        "dec": null,
+        "contrainte": -1,
+        "contraintedec": -1
+      },
+      "largeur": {
+        "d1": null,
+        "d2": null,
+        "dec": null,
+        "contrainte": 0,
+        "contraintedec": -1
+      },
+      "hauteur": {
+        "d1": null,
+        "d2": null,
+        "dec": null,
+        "contrainte": -1,
+        "contraintedec": -1
+      }
+    },
+    "angle": {
+      "heading": {
+        "v": null,
+        "contrainte": -1
+      },
+      "tilt": {
+        "v": null,
+        "contrainte": -1
+      },
+      "roll": {
+        "v": null,
+        "contrainte": 0
+      }
+    },
+    "contrainte": {
+      "element": 0,
+      "n1": 1,
+      "n2": 0
+    }
+  }
+]

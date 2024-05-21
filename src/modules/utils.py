@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-import pdb
 import glob
 import json
 import shutil
@@ -26,7 +25,7 @@ def create_folders(basefolder: str, *folders):
     return paths
 
 
-def last_file_index(filenames):
+def last_file_index(filenames: list):
     """
     this function takes a list of files assumingly ending with a number.
     That number is considered to be an incremental index. The highest such
@@ -44,7 +43,9 @@ def last_file_index(filenames):
         return int(match.groups()[0])
 
 
-def files_with_extensions(*args, datapath: str, recursive: bool=False):
+def files_with_extensions(*args,
+                        datapath: str,
+                        recursive: bool=False):
     """
     returns a list of files inside the datapath that have one of the
     extensions
@@ -177,7 +178,8 @@ def lower_ext(x):
 
 
 @forall
-def dict_lowercase(dictio: dict, keys_only: bool=False) -> dict:
+def dict_lowercase(dictio: dict,
+                    keys_only: bool=False) -> dict:
     """
     lowercase all elements of a list of potentially nested dictionaries.
     if keys_only is set, only lowercase the keys

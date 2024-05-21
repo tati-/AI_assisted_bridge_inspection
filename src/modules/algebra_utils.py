@@ -144,6 +144,21 @@ def point_projected_on_plane(plane_points: npt.ArrayLike, point: npt.ArrayLike) 
     return point_projected
 
 
+def area_from_points(points: npt.ArrayLike) -> float:
+    """
+    return the area enclosing a number of points.
+    INPUT:
+    @points: nPoints x 3 array of point coordinates
+    """
+    try:
+        area = ConvexHull(points).area
+    except Exception as e:
+        area = 0
+        warnings.warn(str(e))
+
+    return area
+
+
 def volume_from_points(points: npt.ArrayLike) -> float:
     """
     return the volume enclosing a number of points. Returns 0
@@ -171,6 +186,72 @@ def points_in_mesh(mesh_points: npt.ArrayLike, test_points: npt.ArrayLike) -> np
     """
     assert mesh_points.shape[-1]==test_points.shape[-1], 'Points defining the polygon and new point should have the same dimension!'
     return Delaunay(mesh_points).find_simplex(test_points) >= 0
+
+
+def initialize_tilt(points: npt.ArrayLike) -> npt.ArrayLike:
+    """
+    Infer width, length and height rough tilt values, based on the points
+    distribution
+    width tilt: x axis, offset between width on positive and negative z
+    length tilt: y axis, offset between length on positive and negative x
+    height tilt: z axis, offset between length on positive and negative x
+    """
+    # width offset
+    med_pos = np.mean(points[points[:,2]>0], axis=0)
+    med_neg = np.mean(points[points[:,2]<0], axis=0)
+    width_tilt = med_pos[0] - med_neg[0]
+    # length offset
+    med_pos = np.mean(points[points[:,0]>0], axis=0)
+    med_neg = np.mean(points[points[:,0]<0], axis=0)
+    #### DEBUG
+    # vis.plot_3d_point_cloud(points, np.vstack([med_pos, med_neg]))
+    ####
+    length_tilt = med_pos[1] - med_neg[1]
+    # height offset
+    height_tilt = med_pos[2] - med_neg[2]
+    return np.array([width_tilt, length_tilt, height_tilt])
+
+
+def point2mesh_distance(points: npt.ArrayLike, mesh: o3d.geometry.TriangleMesh) -> npt.ArrayLike:
+    """
+    this function calculates the minimum distance of a set of points to a triangular mesh
+    (http://www.open3d.org/docs/latest/tutorial/geometry/distance_queries.html)
+    INPUTS:
+    @points : nPoints x 3 array with the coordinates of the query points
+    @mesh: an open3d geometry object representing a triangle mesh
+    OUTPUT:
+    @unsigned_distance: nPoints length array with the minimum unsigned distance
+                        of each query point from the mesh
+    """
+    trimesh = o3d.t.geometry.TriangleMesh.from_legacy(mesh)
+    # Create a scene and add the triangle mesh
+    scene = o3d.t.geometry.RaycastingScene()
+    _ = scene.add_triangles(trimesh)
+    # make sure the query points have the right format
+    points = points.astype(np.float32)
+    points = points[np.newaxis, ...] if points.ndim == 1 else points
+    # query_point = o3d.core.Tensor(points, dtype=o3d.core.Dtype.Float32)
+    # Compute distance of the query point from the surface
+    # While the unsigned distance can always be computed, the signed distance and
+    # the occupancy are only valid if the mesh is watertight and the inside and
+    # outside are clearly defined. The signed distance is negative if the query
+    # point is inside the mesh. The occupancy is either 0 for points outside the
+    # mesh and 1 for points inside the mesh.
+    unsigned_distance = scene.compute_distance(points)
+    # signed_distance = scene.compute_signed_distance(query_point)
+    # occupancy = scene.compute_occupancy(query_point)
+
+    return unsigned_distance.numpy()
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# faster than delauney for one point, but not for more
+# def pnt_in_pointcloud(points: npt.ArrayLike, new_pt: npt.ArrayLike) -> bool:
+#     """
+#     checks if a point lies inside the 3d polygon defined by points
+#     """
+#     assert points.shape[-1]==new_pt.shape[-1], 'Points defining the polygon and new point should have the same dimension!'
+#     hull = ConvexHull(points)
+#     new_hull = ConvexHull(np.concatenate((points, [new_pt])))
+#     # return np.array_equal(new_hull.vertices, hull.vertices)
+#     return np.array_equal(new_hull.simplices, hull.simplices)

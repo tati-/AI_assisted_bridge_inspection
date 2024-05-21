@@ -1,0 +1,6 @@
+-pc
+../../data/point_clouds/mock_pont/mock_pont_surface.glb
+-b
+./json/mock_skeleton.json
+-o
+./json/parameters.json

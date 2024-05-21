@@ -1,0 +1,6 @@
+-i
+./json/parameters.json
+-o
+./geometric_models/bridge.ifc
+-b
+./json/skeleton.json

@@ -169,7 +169,7 @@ def get_network(architecture: str,
         conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(up9)
         conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv9)
 
-        conv10 = Conv2D(n_classes, (1, 1), activation='sigmoid', name='mask')(conv9)
+        conv10 = Conv2D(n_classes, (1, 1), activation='softmax', name='mask')(conv9)
 
         model = Model(inputs=[inputs], outputs=[conv10], name=arch)
 
@@ -208,7 +208,7 @@ def get_network(architecture: str,
         conv7 = Conv2D(32, (3, 3), activation='relu', padding='same')(up7)
         conv7 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv7)
 
-        conv8 = Conv2D(n_classes, (1, 1), activation='sigmoid', name='reconstructed')(conv7)
+        conv8 = Conv2D(n_classes, (1, 1), activation='softmax', name='reconstructed')(conv7)
 
         model = Model(inputs=[inputs], outputs=[conv8], name=arch)
 
@@ -287,6 +287,8 @@ def get_model(finetune: bool=False,
         suffix = f'{trainable}_layers'
         # load model
         model = load_model_extended(model_path, **kwargs)
+        # change model learning rate
+        # K.set_value(model.optimizer.lr, K.get_value(model.optimizer.lr)*0.1)
         if trainable!='all' and trainable<=len(model.layers):
             for layer in model.layers[:len(model.layers)-trainable]:
                 layer.trainable=False
@@ -294,7 +296,10 @@ def get_model(finetune: bool=False,
         # trainable layers will not be incorporated
         metrics = [x for x in model.metrics if x.name!='loss']
         model._name += f'_finetuned_{suffix}'
-        model.compile(optimizer=model.optimizer, loss=model.loss, metrics=metrics)
+        # breakpoint()
+        model.compile(optimizer=kwargs['optimizer'], loss=model.loss, metrics=metrics)
+        # model.compile(optimizer=model.optimizer, loss=model.loss, metrics=metrics)
+        # breakpoint()
     else:
         model = get_network(**kwargs)
 
@@ -354,7 +359,7 @@ class EvaluateCallback(tensorflow.keras.callbacks.Callback):
             plt.imsave(os.path.join(self.out_path, 'original.png'), original[...,:3])
             gt_categorical = np.argmax(np.squeeze(truth), axis=-1).astype('uint8') # for categorical groundtruth
             # cv2 imwrite requires an image of integers in the range of [0,255]
-            gt_img = vis.categorical2color_img(gt_categorical, self.colors)
+            gt_img = vis.categorical2color(gt_categorical, self.colors)
             plt.imsave(os.path.join(self.out_path, 'truth.png'), gt_img)
 
     # def on_batch_end(self, batch, logs={}):
@@ -363,7 +368,7 @@ class EvaluateCallback(tensorflow.keras.callbacks.Callback):
             if self.out_path is not None:
                 output = self.model.predict(self.image, batch_size=1)
                 output = np.argmax(np.squeeze(output), axis=-1).astype('uint8')
-                output = vis.categorical2color_img(output, self.colors)
+                output = vis.categorical2color(output, self.colors)
                 plt.imsave(os.path.join(self.out_path,f'epoch_{self.n_epoch}_output.png'),
                     output)
         self.n_epoch += 1
@@ -434,8 +439,8 @@ def train_model(model: tf.keras.Model,
 
     # also save after last epoch
     save_name = f'{model.name}_final' if fold is None else f'{model.name}_final_fold_{fold}'
-    model.save(os.path.join(save_path, save_name))
-    np.save(os.path.join(result_save_path, 'training_history.npy'), hist.history)
+    model.save(Path(save_path).joinpath(save_name))
+    np.save(Path(result_save_path).joinpath('training_history.npy'), hist.history)
 
     vis.plot_training_history(hist.history,
                         Path(result_save_path).joinpath('loss.png'))

@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-import pdb
 import bpy
 import json
 import math
@@ -16,7 +15,7 @@ import modules.utils as utils
 import modules.blender_utils as bl
 import modules.algebra_utils as alg
 import modules.ifc_utils as ifc_utils
-import modules.point_cloud_utils as pcl
+import modules.optimization_utils as optim
 import modules.translate_utils as translate
 from classes.building_block import Hexahedron, Constraint
 
@@ -26,7 +25,9 @@ class BridgeModel:
     This class represents a bridge as a collection of hexahedra.
     The hexahedra dimensions and dependencies are given via a json file
     """
-    def __init__(self, json_data_path: str, json_param_path: str=None):
+    def __init__(self,
+                json_data_path: str,
+                json_param_path: str=None):
         """
         @json_data_path: a json file containing all the parameters needed to create
                 a bridge .obj model, in the form of a list of building blocks(cubes)
@@ -57,7 +58,6 @@ class BridgeModel:
         # test = translate.translate_json(json_data_path)
         with open(Path(json_data_path).with_stem(f'{Path(json_data_path).stem}_en'), 'w') as fp:
             json.dump(test, fp, indent=2)
-        pdb.set_trace()
         """
         # the json file is in french, here I translate it to have some more
         # representative keys in english
@@ -165,7 +165,7 @@ class BridgeModel:
         return min_, max_
 
 
-    def randomize_data(self, constraints):
+    def randomize_data(self, constraints: npt.ArrayLike):
         """
         this function uses the parameter margins to randomize the bridge
         dimensions
@@ -211,7 +211,9 @@ class BridgeModel:
 
 
 
-    def get_dimension_parent(self, index: int, dimension: str) -> int:
+    def get_dimension_parent(self,
+                            index: int,
+                            dimension: str) -> int:
         """
         returns the index of the building block whose given dimension
         should be used
@@ -226,7 +228,9 @@ class BridgeModel:
         return i
 
 
-    def get_offset_parent(self, index: int, dimension: str):
+    def get_offset_parent(self,
+                        index: int,
+                        dimension: str):
         """
         returns the index of the building block whose offset for the given dimension
         should be used
@@ -240,7 +244,9 @@ class BridgeModel:
         return i
 
 
-    def get_rotation_parent(self, index: int, rot_axis: str):
+    def get_rotation_parent(self,
+                            index: int,
+                            rot_axis: str):
         """
         returns the index of the building block whose rotation angle for the given
         axis should be used
@@ -549,6 +555,40 @@ class BridgeModel:
         mesh += self.normals + self.texture + self.faces
 
         return mesh
+
+
+    def move(self, offset: npt.ArrayLike):
+        """
+        translate the bridge by offset
+        INPUTS:
+        @offset: 1x3 array, translation coordinates in x,y,z
+        """
+        for block in self.building_blocks:
+            block.offset += offset
+
+
+    def zero_mean(self):
+        """
+        recenter bridge so that it is around (0,0,0)
+        """
+        points = np.concatenate([block.global_coords for block in self.building_blocks])
+        off = -np.mean(points, axis=0)
+        self.move(off)
+
+
+    def align_to_point_cloud(self, deck_points: npt.ArrayLike=None):
+        """
+        changes the offset of the bridge (of all the blocks) so that the
+        deck of the bridge overlaps as much as possible with the point point cloud.
+        INPUTS:
+        @deck_points: nPoints x 3 array with coordinates of 3d points that belong
+                to the deck
+        """
+        deck = [block for block in self.building_blocks if block.label=='traverse'][0]
+        deck_points = deck.points if deck_points is None else deck_points
+        res = optim.align_model_to_points(deck_points, deck.global_coords)
+        self.move(res[0])
+        print(f'Deck aligned with {(1-res[1])*100:.2f}% overlap.')
 
 
     @property

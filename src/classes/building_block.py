@@ -1,22 +1,17 @@
 import os
 import sys
-import pdb
 import json
 import math
 import random
 import flatdict
-import argparse
-import warnings
-import open3d as o3d
 import numpy as np
+import open3d as o3d
 import numpy.typing as npt
 from typing import Literal
 from dataclasses import dataclass
 from scipy.spatial import ConvexHull
 
 import modules.algebra_utils as alg
-from modules.decorators import timer
-import modules.point_cloud_utils as pcl
 
 
 class Hexahedron:
@@ -24,11 +19,23 @@ class Hexahedron:
     this class represents a geometric element, an hexahedron used as a building
     block for the bridge
     """
-    def __init__(self, id: int, label: str, name: str, width, length, height,
-                rotx: float=0, roty: float=0, rotz: float=0):
+    def __init__(self,
+                id: int,
+                label: str,
+                name: str,
+                width: npt.ArrayLike,
+                length: npt.ArrayLike,
+                height: npt.ArrayLike,
+                rotx: float=0,
+                roty: float=0,
+                rotz: float=0):
         """
         @json_data: the list of dictionary items read from the diades json file
                     (check readme code for its structure)
+        @self.points: nPoints x 3 array containing the points that belong to a block
+        @self.plane: coefficients of plane equation describing a block,
+                    array of the form [a,b,c,d] where
+                    ax + by + cz + d = 0 is the plane equation
         """
         # this id is the index of the current block in the blocks array
         # can I disassociate this?
@@ -43,14 +50,17 @@ class Hexahedron:
         self.set_rotations(rotx, roty, rotz)
         self.offset = np.zeros(3)
         self.visible = True
-        # self.mask = HexahedronMask()
+        self.points, self.plane = None, None
 
 
-    def from_points(self, points: npt.ArrayLike, box_type: Literal['oriented', 'axis_aligned']='oriented'):
+    def from_points(self,
+                    points: npt.ArrayLike,
+                    box_type: Literal['oriented', 'axis_aligned']='oriented'):
         """
         this function rougly defines a block from a set of points that should
         be enclosed by it
         """
+        self.points = points
         # limits = np.max(points, axis=0) - np.min(points, axis=0)
         # axis_order = np.argsort(limits)[::-1] # indices that sort limits in descending order
         pcd = o3d.geometry.PointCloud()
@@ -88,7 +98,10 @@ class Hexahedron:
         self.set_rotations(0,0,0)
 
 
-    def set_dimensions(self, width: npt.ArrayLike, length: npt.ArrayLike, height: npt.ArrayLike):
+    def set_dimensions(self,
+                        width: npt.ArrayLike,
+                        length: npt.ArrayLike,
+                        height: npt.ArrayLike):
         """
         This function sets the dimensions of the cube and the tilt(decalage)
         INPUTS:
@@ -112,7 +125,10 @@ class Hexahedron:
         self.dimensions['height'] = np.asarray(height)
 
 
-    def set_rotations(self, rotx: float, roty: float, rotz: float):
+    def set_rotations(self,
+                    rotx: float,
+                    roty: float,
+                    rotz: float):
         """
         This function sets the rotation angle in degrees
         rot_axis: string, indication of the rotation axis
@@ -223,6 +239,62 @@ class Hexahedron:
         return self.local_coords + self.offset
 
 
+    @property
+    def rect_faces(self):
+        """
+        returns a np array of shape 6x4x3, where each line contains the vertex
+        coordinates that compose a face in counterclockwise order
+        0: front
+        1: back
+        2: top
+        3: bottom
+        4: right
+        5: left
+        """
+        faces = np.array([[6, 7, 4, 5],
+                          [1, 0, 3, 2],
+                          [5, 4, 0, 1],
+                          [2, 3, 7, 6],
+                          [4, 7, 3, 0],
+                          [6, 5, 1, 2]])
+        return faces
+        # faces = [np.array([self.global_coords[v] for v in face]) for face in faces_ind]
+        # return np.stack(faces, axis=0)
+
+
+    @property
+    def triangle_mesh(self):
+        """
+        returns a np array of shape 6x4x3, where each line contains the vertex
+        coordinates that compose a triangular face in counterclockwise order
+        0, 1: front
+        2, 3: back
+        4, 5: top
+        6, 7: bottom
+        8, 9: right
+        10, 11: left
+        """
+        faces = np.array([[6, 7, 4],
+                          [4, 5, 6],
+                          [1, 0, 3],
+                          [3, 2, 1],
+                          [5, 4, 0],
+                          [0, 1, 5],
+                          [2, 3, 7],
+                          [7, 6, 2],
+                          [4, 7, 3],
+                          [3, 0, 4],
+                          [6, 5, 1],
+                          [1, 2, 6]])
+
+        vertices = o3d.utility.Vector3dVector(self.global_coords)
+        triangles = o3d.utility.Vector3iVector(faces)
+        trimesh = o3d.geometry.TriangleMesh(vertices=vertices, triangles=triangles)
+        return trimesh
+        # faces = [np.array([self.global_coords[v] for v in face]) for face in faces_ind]
+        # return np.stack(faces, axis=0)
+
+
     def is_complete(self) -> bool:
         """
         check if all of the hexahedron dimensions and rotations
@@ -321,6 +393,7 @@ class Hexahedron:
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 @dataclass
 class Constraint:
     """
@@ -338,8 +411,3 @@ class Constraint:
     parent: int=-1
     parent_node: int=-1
     child_node: int=-1
-    # def __init__(self, width: int=-1, length: int=-1, height: int=-1,
-    #             width_tilt: int=-1, length_tilt: int=-1, height_tilt: int=-1,
-    #             rotx: int=-1, roty: int=-1, rotz: int=-1, parent: int=-1,
-    #             parent_node: int=-1, child_node: int=-1):
-    #     self.width = width

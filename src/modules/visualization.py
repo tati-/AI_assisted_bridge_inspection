@@ -1,10 +1,10 @@
 import os
 import sys
-import pdb
 import glob
 import numpy as np
 import pandas as pd
 from pathlib import Path
+import open3d as o3d
 import seaborn as sns
 import matplotlib as mpl
 from matplotlib import cm
@@ -33,7 +33,8 @@ class_colors = np.asarray([[0,0,0], # background
                            ])
 
 
-def categorical2color_img(cat_img, colors):
+def categorical2color(categories,
+                    colors: list=class_colors):
     """
     this function takes a categorical 2d map, with integers representing different
     categories, and a list of colors (3d).
@@ -41,14 +42,17 @@ def categorical2color_img(cat_img, colors):
     different color of the list. The categories basically serve as indices to the
     color list.
     """
-    colored_img = np.zeros((cat_img.shape + (colors.shape[-1],)))
+    colored = np.zeros((categories.shape + (colors.shape[-1],)))
     for i, color in enumerate(colors):
-        colored_img[cat_img==i, ...] = colors[i, ...]
+        colored[categories==i, ...] = colors[i, ...]
 
-    return colored_img
+    return colored
 
 
-def plot_time_wrt_vertices(time_, n_vertices, save_path='time_wrt_vertices.pdf', time_unit='sec'):
+def plot_time_wrt_vertices(time_,
+                        n_vertices,
+                        save_path='time_wrt_vertices.pdf',
+                        time_unit='sec'):
     """
     plots one or more (depending on input) curves
     """
@@ -74,7 +78,9 @@ def plot_time_wrt_vertices(time_, n_vertices, save_path='time_wrt_vertices.pdf',
 
 
 @forall
-def inspect_dataset(paths: pd.Series, labels, savefolder=None):
+def inspect_dataset(paths: pd.Series,
+                    labels: list,
+                    savefolder=None):
     """
     this function displays each data sample image with its groundtruth
     If a savefolder is given as input, those images are saved.
@@ -143,7 +149,9 @@ def inspect_dataset(paths: pd.Series, labels, savefolder=None):
 
 
 @forall
-def inspect_predictions(data: tuple, labels=None, savefolder=None):
+def inspect_predictions(data: tuple,
+                        labels=None,
+                        savefolder=None):
     """
     this function displays a data sample image with its groundtruth(optional) and
     with the network prediction. If a savefolder is given as input, those images are saved.
@@ -194,7 +202,10 @@ def inspect_predictions(data: tuple, labels=None, savefolder=None):
     plt.close()
 
 
-def demo_mist(images_mist, images_no_mist, n_images=None, savefolder=None):
+def demo_mist(images_mist,
+            images_no_mist,
+            n_images=None,
+            savefolder=None):
     """
     create a plot of side by side images with and without mist, for demonstration
     purposes
@@ -223,7 +234,9 @@ def demo_mist(images_mist, images_no_mist, n_images=None, savefolder=None):
     plt.close()
 
 
-def demo_discarded(images, coverage=0, savefolder=None):
+def demo_discarded(images,
+                    coverage=0,
+                    savefolder=None):
     """
     plots a number of discarded images for demonstration purposes
     INPUTS
@@ -262,7 +275,9 @@ def plot_training_history(hist, save_path=None):
     plt.close()
 
 
-def plot_confusion_matrix(confusion_matrix, labels=None, savepath=None):
+def plot_confusion_matrix(confusion_matrix,
+                        labels=None,
+                        savepath=None):
     labels = list(range(confusion_matrix.max())) if labels is None else labels
     fig = plt.figure(figsize=(12,15))
     ax = plt.axes()
@@ -319,6 +334,41 @@ def tfonnx_comparison(img, tf_pred, onnx_pred, savepath='./tf_onnx_comparison.pn
     else:
         plt.savefig(savepath, bbox_inches='tight')
     plt.close()
+
+
+def display_pc(points,
+                labels=None,
+                vertices=None):
+    """
+    this function displays a point cloud
+    """
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points[:,:3])
+    if labels is not None:
+        pcd.colors = o3d.utility.Vector3dVector(categorical2color(labels))
+    # if points.shape[1]>3:
+    #     pcd.colors = o3d.utility.Vector3dVector(points[:,3:6]) # should be in [0,1] /255
+    coo_frame = o3d.geometry.TriangleMesh.create_coordinate_frame()
+    viewer = o3d.visualization.Visualizer()
+    viewer.create_window()
+    viewer.add_geometry(pcd)
+    # viewer.add_geometry(coo_frame)
+    if vertices is not None:
+        vertices_pc = o3d.geometry.PointCloud()
+        vertices_pc.points = o3d.utility.Vector3dVector(vertices[:,:3])
+        bbox = vertices_pc.get_minimal_oriented_bounding_box()
+        bbox.color = (0,0,0)
+        viewer.add_geometry(bbox)
+    # opt = viewer.get_render_option()
+    # opt.line_width = 5
+    # opt.show_coordinate_frame = False
+    # ctr = viewer.get_view_control()
+    # ctr.rotate(x=10.0, y=0.0)
+    # ctr.scale()
+    viewer.run()
+    viewer.destroy_window()
+    # o3d.visualization.draw_geometries([pcd, ])
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

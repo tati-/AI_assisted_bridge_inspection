@@ -1,7 +1,5 @@
 -dp
 ../../../../data/real_MIRAUAR_en
--mp
-../../../../models/Bridge_parametric_models/PIPO/dataset_MIRAUAR/sv0019/Unet_mobilenetv2_pr_best_val_perf
 -ne
 100
 --finetune

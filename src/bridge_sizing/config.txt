@@ -1,0 +1,6 @@
+-pc
+../../data/point_clouds/pont_demo_villette_Anthon2/pont_anthon.glb
+-b
+../../data/json/PICF-Demo.json
+-o
+../../data/json/parameters.json

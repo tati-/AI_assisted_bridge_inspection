@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-import pdb
 import bpy
 import cv2
 import glob
@@ -16,6 +15,7 @@ import datetime
 import unidecode
 import numpy as np
 from pathlib import Path
+import numpy.typing as npt
 from natsort import natsorted
 from mathutils import Vector, Quaternion
 from bpy_extras.object_utils import world_to_camera_view
@@ -142,7 +142,8 @@ def object_vertices(obj, position:str=None, corner: bool=False):
     return coords
 
 
-def vertices_by_relative_position(coords: npt.arrayLike, position:str):
+def vertices_by_relative_position(coords: npt.ArrayLike,
+                                position:str):
     """
     get the subset of coordinates that corresponds to the position
     description, with respect to the center of gravity of the vertices.

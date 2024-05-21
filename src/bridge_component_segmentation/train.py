@@ -198,14 +198,13 @@ def train(data_path: str,
     kwargs['n_classes'] = len(LABELS_PIPO)
     kwargs['input_shape'] = (HEIGHT, WIDTH, 3)
     kwargs['info_path'] = paths['info']
-    # kwargs['model_savepath'] = paths['model']
-    # kwargs['results_savepath'] = paths['results']
     if re.search(f'_w$', kwargs['loss']):
         kwargs['class_weights'] = [CLASS_WEIGHTS[key] for key in LABELS_PIPO]
 
     # initialize model
     ml.select_GPU()
     model = ml.get_model(**kwargs)
+    # model.save(Path(paths['model']).joinpath(f'{model.name}_untrained'))
     # train model
     try:
         model = ml.train_model(model=model,

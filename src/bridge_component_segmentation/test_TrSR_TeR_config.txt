@@ -1,0 +1,5 @@
+-dp
+../../../../data/real_MIRAUAR_en/test
+-mp
+../../../../models/Bridge_parametric_models/PIPO/dataset_MIRAUAR/sv0001/Unet_mobilenetv2_pr_final_finetuned_with_real_MIRAUAR_en_all_layers/Unet_mobilenetv2_pr_finetuned_all_layers_best_val_perf
+../../../../models/Bridge_parametric_models/PIPO/dataset_MIRAUAR/sv0001/Unet_mobilenetv2_pr_final_finetuned_with_real_MIRAUAR_en_all_layers/Unet_mobilenetv2_pr_finetuned_all_layers_final

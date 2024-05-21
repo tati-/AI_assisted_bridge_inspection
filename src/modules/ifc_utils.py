@@ -1,25 +1,24 @@
 import os
 import sys
-import pdb
 import bpy
 import numpy as np
 import addon_utils
 from .decorators import forall
 
 # correspondance of bridge elements to ifc classes
-ifc_classes = { 'traverse': 'IfcRoof',
-                'piedroit': 'IfcColumn',
-                'mur':'IfcWall',
-                'gousset': 'IfcSlab',
-                'corniche': 'IfcPlate',
+ifc_classes = { 'deck': 'IfcRoof',
+                'abutment': 'IfcColumn',
+                'wing_wall':'IfcWall',
+                'haunch': 'IfcSlab',
+                'edge_beam': 'IfcPlate',
                 'ground': 'IfcFooting'
                 }
 
 
 if sys.platform == 'darwin':
-    blenderbim_path = 'addons/blenderbim-230506-py310-macosm1.zip'
+    blenderbim_path = '../../assets/addons/blenderbim-230506-py310-macosm1.zip'
 elif sys.platform == 'linux':
-    blenderbim_path = 'addons/blenderbim-230504-py310-linux.zip' #'addons/blenderbim-230304-py310-linux.zip'
+    blenderbim_path = '../../assets/addons/blenderbim-230504-py310-linux.zip' #'addons/blenderbim-230304-py310-linux.zip'
 
 
 def enable_blenderBIM():
