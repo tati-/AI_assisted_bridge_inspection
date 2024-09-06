@@ -30,12 +30,14 @@ def json_complexity(json_basefile):
     with open(json_basefile) as f:
         data = json.load(f)
     n_total, n_indep = 0, 0
-    pattern_params = '^Dimensions\.(Longueur|Largeur|Hauteur)\.D|Angle\.(Heading|Roll|Tilt)\.V'
-    pattern_constraints_single = '^Dimensions\.(Longueur|Largeur|Hauteur)\.ContrainteDec|Angle\.(Heading|Roll|Tilt)\.Contrainte'
-    pattern_constraints_double = '^Dimensions\.(Longueur|Largeur|Hauteur)\.Contrainte$'
+    pattern_params = '^dimensions\.(width|length|height)\.d|angles\.(heading|roll|tilt)\.v'
+    pattern_constraints_single = '^dimensions\.(width|length|height)\.offset_constraint|angles\.(heading|roll|tilt)\.constraint'
+    pattern_constraints_double = '^dimensions\.(width|length|height)\.constraint$'
     for block in data:
          block_flat = flatdict.FlatDict(block, delimiter='.')
          n_total += len([key for key in block_flat.keys() if re.search(pattern_params, key)])
+         print(len(block_flat))
+         breakpoint()
          n_indep += len([key for key,val in block_flat.items()
                                     if re.search(pattern_constraints_single, key)
                                     and val==-1])
